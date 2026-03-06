@@ -1,15 +1,3 @@
-"""
-📋 Bản Tin Tổng Hợp — FastAPI + PostgreSQL + Jinja2
-=====================================================
-pip install fastapi uvicorn asyncpg feedparser requests beautifulsoup4 python-dotenv apscheduler jinja2
-
-uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-
-.env:
-  DATABASE_URL=postgresql://postgres:password@192.168.1.149:5432/news
-  GEMINI_API_KEY=your_key_here  (tuỳ chọn)
-"""
-
 import asyncio
 import hashlib
 import json
