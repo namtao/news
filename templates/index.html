@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📋 Bản Tin Tổng Hợp</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --surface: #1e293b;
+        --surface2: #334155;
+        --text: #e2e8f0;
+        --text2: #94a3b8;
+        --text3: #64748b;
+        --blue: #3b82f6;
+        --green: #22c55e;
+        --red: #ef4444;
+        --yellow: #fbbf24;
+        --cyan: #22d3ee;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+        padding: 0 16px 60px;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      /* Header */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 0 16px;
+        border-bottom: 1px solid var(--surface);
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .header h1 {
+        font-size: 24px;
+        font-weight: 800;
+      }
+      .header-meta {
+        font-size: 13px;
+        color: var(--text3);
+        display: flex;
+        gap: 16px;
+        align-items: center;
+      }
+      .live-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+
+      /* Grid layout */
+      .dashboard {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 20px;
+      }
+      @media (max-width: 768px) {
+        .dashboard {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Section */
+      .section {
+        background: var(--surface);
+        border-radius: 12px;
+        padding: 18px 20px;
+        min-height: 200px;
+      }
+      .section.full {
+        grid-column: 1 / -1;
+      }
+      .section-hdr {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--surface2);
+      }
+      .section-title {
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .section-badge {
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+      }
+      .badge-live {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--red);
+      }
+      .badge-hour {
+        background: rgba(59, 130, 246, 0.15);
+        color: var(--blue);
+      }
+      .badge-manual {
+        background: rgba(34, 211, 238, 0.15);
+        color: var(--cyan);
+      }
+      .section-time {
+        font-size: 11px;
+        color: var(--text3);
+        margin-top: 2px;
+      }
+
+      /* Gold grid */
+      .gold-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 8px;
+      }
+      .gold-card {
+        background: var(--bg);
+        border-radius: 8px;
+        padding: 12px 14px;
+      }
+      .gold-name {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: var(--text);
+      }
+      .gold-prices {
+        font-size: 12px;
+        color: var(--text2);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 14px;
+      }
+      .gold-val {
+        color: var(--yellow);
+        font-weight: 700;
+      }
+      .chg-up {
+        color: var(--green);
+        font-weight: 600;
+      }
+      .chg-dn {
+        color: var(--red);
+        font-weight: 600;
+      }
+
+      /* Table */
+      .tbl {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .tbl th {
+        text-align: left;
+        padding: 8px 10px;
+        color: var(--text3);
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: 600;
+        border-bottom: 1px solid var(--surface2);
+      }
+      .tbl td {
+        padding: 8px 10px;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+      }
+      .tbl .r {
+        text-align: right;
+      }
+      .tbl .coin {
+        font-weight: 700;
+      }
+
+      /* News list */
+      .news-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .news-item {
+        display: flex;
+        gap: 10px;
+        padding: 10px 12px;
+        background: var(--bg);
+        border-radius: 8px;
+      }
+      .news-num {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: var(--surface2);
+        color: var(--text3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        margin-top: 2px;
+      }
+      .news-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .news-title {
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.4;
+      }
+      .news-title a {
+        color: var(--text);
+        text-decoration: none;
+      }
+      .news-title a:hover {
+        color: var(--blue);
+      }
+      .news-orig {
+        font-size: 12px;
+        color: var(--text3);
+        margin-top: 1px;
+      }
+      .news-summary {
+        font-size: 12px;
+        color: var(--text2);
+        margin-top: 3px;
+      }
+      .news-meta {
+        font-size: 11px;
+        color: var(--text3);
+        margin-top: 4px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 10px;
+      }
+      .news-src {
+        color: var(--blue);
+        font-weight: 500;
+      }
+      .news-meta a {
+        color: var(--cyan);
+        text-decoration: none;
+      }
+      .fire {
+        letter-spacing: -2px;
+      }
+
+      /* GitHub */
+      .gh-lang {
+        display: inline-block;
+        background: var(--surface2);
+        color: var(--text2);
+        border-radius: 4px;
+        padding: 0 5px;
+        font-size: 10px;
+        margin-left: 6px;
+      }
+      .btn-refresh {
+        padding: 5px 12px;
+        border: 1px solid var(--surface2);
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text2);
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .btn-refresh:hover {
+        background: var(--surface2);
+        color: var(--text);
+      }
+
+      /* Spinner for AJAX update */
+      .updating {
+        position: relative;
+      }
+      .updating::after {
+        content: "";
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 14px;
+        height: 14px;
+        border: 2px solid var(--surface2);
+        border-top-color: var(--blue);
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1>📋 Bản Tin Tổng Hợp</h1>
+        <div class="header-meta">
+          <span><span class="live-dot"></span> Live</span>
+          <span id="clock">{{ now }}</span>
+        </div>
+      </div>
+
+      <div class="dashboard">
+        <!-- ═══ GIÁ VÀNG ═══ -->
+        <div class="section" id="sec-gold">
+          <div class="section-hdr">
+            <div>
+              <div class="section-title">💰 Giá Vàng</div>
+              <div class="section-time" id="gold-time">
+                {% if gold.time %}🕐 {{ gold.time }} — {{ gold.date }}{% endif %}
+              </div>
+            </div>
+            <span class="section-badge badge-live">🔴 LIVE 15s</span>
+          </div>
+          <div class="gold-grid" id="gold-grid">
+            {% for g in gold.data %}
+            <div class="gold-card">
+              <div class="gold-name">{{ g.name }}</div>
+              <div class="gold-prices">
+                {% if g.currency == 'VND' %}
+                <span>Mua: <span class="gold-val">{{ fmt_vnd(g.buy) }}</span></span>
+                <span>Bán: <span class="gold-val">{{ fmt_vnd(g.sell) }}</span></span>
+                {% if g.change_sell %}
+                <span class="{{ 'chg-up' if g.change_sell > 0 else 'chg-dn' }}">
+                  {{ '▲' if g.change_sell > 0 else '▼' }} {{ fmt_vnd(g.change_sell|abs) }}
+                </span>
+                {% endif %} {% else %}
+                <span>Giá: <span class="gold-val">{{ fmt_usd(g.buy) }}/oz</span></span>
+                {% if g.change_buy %}
+                <span class="{{ 'chg-up' if g.change_buy > 0 else 'chg-dn' }}">
+                  {{ '▲' if g.change_buy > 0 else '▼' }} ${{ fmt_pct(g.change_buy) }}
+                </span>
+                {% endif %} {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- ═══ CRYPTO ═══ -->
+        <div class="section" id="sec-crypto">
+          <div class="section-hdr">
+            <div class="section-title">🪙 Tiền Điện Tử</div>
+            <span class="section-badge badge-live">🔴 LIVE 30s</span>
+          </div>
+          <table class="tbl" id="crypto-tbl">
+            <thead>
+              <tr>
+                <th>Coin</th>
+                <th class="r">Giá (USD)</th>
+                <th class="r">24h</th>
+                <th class="r">Vốn hóa</th>
+                <th class="r">KL 24h</th>
+              </tr>
+            </thead>
+            <tbody id="crypto-body">
+              {% for c in crypto.data %}
+              <tr>
+                <td class="coin">{{ c.ky_hieu }}</td>
+                <td class="r">${{ fmt_usd2(c.usd) }}</td>
+                <td class="r {{ 'chg-up' if c.thay_doi >= 0 else 'chg-dn' }}">
+                  {{ '▲' if c.thay_doi >= 0 else '▼' }} {{ fmt_pct(c.thay_doi|abs) }}%
+                </td>
+                <td class="r">{{ fmt_big(c.von_hoa) }}</td>
+                <td class="r">{{ fmt_big(c.kl) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% set btc = crypto.data|selectattr("ky_hieu","equalto","BTC")|first %} {% if btc and btc.vnd %}
+          <div style="font-size: 12px; color: var(--text3); margin-top: 10px" id="btc-vnd">
+            💱 1 BTC = {{ "{:,}".format(btc.vnd|int) }} VNĐ
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- ═══ TIN TRONG NƯỚC ═══ -->
+        <div class="section">
+          <div class="section-hdr">
+            <div class="section-title">📰 Tin Trong Nước</div>
+            <span class="section-badge badge-hour">⏰ 1 giờ</span>
+          </div>
+          <div class="news-list">
+            {% for t in vn_news.data %}
+            <div class="news-item">
+              <div class="news-num">{{ loop.index }}</div>
+              <div class="news-body">
+                <div class="news-title"><a href="{{ t.url }}" target="_blank">{{ t.tieu_de }}</a></div>
+                {% if t.tom_tat %}
+                <div class="news-summary">💡 {{ t.tom_tat }}</div>
+                {% elif t.mo_ta %}
+                <div class="news-summary">{{ t.mo_ta }}</div>
+                {% endif %}
+                <div class="news-meta">
+                  <span class="news-src">{{ t.nguon }}</span>
+                  {% if t._score %}<span class="fire">{{ '🔥' * ([((t._score // 5)|int), 5]|min) }}</span>{% endif %}
+                  <a href="{{ t.url }}" target="_blank">🔗 Đọc</a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- ═══ TIN QUỐC TẾ ═══ -->
+        <div class="section">
+          <div class="section-hdr">
+            <div class="section-title">🌍 Tin Quốc Tế</div>
+            <span class="section-badge badge-hour">⏰ 1 giờ</span>
+          </div>
+          <div class="news-list">
+            {% for t in world_news.data %}
+            <div class="news-item">
+              <div class="news-num">{{ loop.index }}</div>
+              <div class="news-body">
+                <div class="news-title">
+                  {{ '🌐 ' if t.can_dich else '' }}<a href="{{ t.url }}" target="_blank"
+                    >{{ t.tieu_de_vi or t.tieu_de }}</a
+                  >
+                </div>
+                {% if t.tieu_de_vi %}
+                <div class="news-orig">{{ t.tieu_de }}</div>
+                {% endif %} {% if t.tom_tat %}
+                <div class="news-summary">💡 {{ t.tom_tat }}</div>
+                {% elif t.mo_ta %}
+                <div class="news-summary">{{ t.mo_ta }}</div>
+                {% endif %}
+                <div class="news-meta">
+                  <span class="news-src">{{ t.nguon }}</span>
+                  {% if t._score %}<span class="fire">{{ '🔥' * ([((t._score // 5)|int), 5]|min) }}</span>{% endif %}
+                  <a href="{{ t.url }}" target="_blank">🔗 Đọc</a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- ═══ CÔNG NGHỆ ═══ -->
+        <div class="section">
+          <div class="section-hdr">
+            <div class="section-title">💻 Công Nghệ — Hacker News</div>
+            <span class="section-badge badge-hour">⏰ 1 giờ</span>
+          </div>
+          <div class="news-list">
+            {% for t in tech_news.data %}
+            <div class="news-item">
+              <div class="news-num">{{ loop.index }}</div>
+              <div class="news-body">
+                <div class="news-title">
+                  <a href="{{ t.url or t.hn_url }}" target="_blank">{{ t.tieu_de_vi or t.tieu_de }}</a>
+                </div>
+                {% if t.tieu_de_vi %}
+                <div class="news-orig">{{ t.tieu_de }}</div>
+                {% endif %} {% if t.tom_tat %}
+                <div class="news-summary">💡 {{ t.tom_tat }}</div>
+                {% endif %}
+                <div class="news-meta">
+                  <span>{{ t.diem }} điểm · 💬 {{ t.binh_luan }} · {{ t.tac_gia }}</span>
+                  {% if t._score %}<span class="fire">{{ '🔥' * ([((t._score // 5)|int), 5]|min) }}</span>{% endif %} {%
+                  if t.url %}<a href="{{ t.url }}" target="_blank">🔗 Bài</a>{% endif %}
+                  <a href="{{ t.hn_url }}" target="_blank">💬 HN</a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- ═══ GITHUB ═══ -->
+        <div class="section">
+          <div class="section-hdr">
+            <div>
+              <div class="section-title">🔥 GitHub Trending</div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <span class="section-badge badge-manual">📌 Thủ công</span>
+              <button class="btn-refresh" onclick="refreshGithub(this)">🔄 Làm mới</button>
+            </div>
+          </div>
+          <div class="news-list" id="github-list">
+            {% for r in github.data %}
+            <div class="news-item">
+              <div class="news-num">{{ loop.index }}</div>
+              <div class="news-body">
+                <div class="news-title">
+                  <a href="{{ r.url }}" target="_blank">{{ r.ten }}</a>
+                  {% if r.ngon_ngu %}<span class="gh-lang">{{ r.ngon_ngu }}</span>{% endif %}
+                </div>
+                {% if r.tieu_de_vi %}
+                <div class="news-orig">📝 {{ r.tieu_de_vi }}</div>
+                {% endif %} {% if r.tom_tat %}
+                <div class="news-summary">💡 {{ r.tom_tat }}</div>
+                {% elif r.mo_ta %}
+                <div class="news-summary">{{ r.mo_ta }}</div>
+                {% endif %}
+                <div class="news-meta">
+                  {% if r.sao %}<span>⭐ {{ r.sao }}</span>{% endif %} {% if r.hom_nay %}<span>📈 {{ r.hom_nay }}</span
+                  >{% endif %}
+                  <a href="{{ r.url }}" target="_blank">🔗 GitHub</a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <!-- /dashboard -->
+    </div>
+
+    <script>
+      // ─── Helpers ───
+      function fmtVnd(n) {
+        if (!n) return "—";
+        return n >= 1e6 ? (n / 1e6).toFixed(1) + " triệu" : n.toLocaleString("vi") + "đ";
+      }
+      function fmtUsd(n) {
+        return n ? "$" + n.toLocaleString("en", { maximumFractionDigits: 2 }) : "—";
+      }
+      function fmtBig(n) {
+        if (!n) return "—";
+        if (n >= 1e9) return "$" + (n / 1e9).toFixed(2) + "B";
+        if (n >= 1e6) return "$" + (n / 1e6).toFixed(2) + "M";
+        return "$" + n.toLocaleString("en");
+      }
+      function chgClass(v) {
+        return v >= 0 ? "chg-up" : "chg-dn";
+      }
+      function chgArrow(v) {
+        return v >= 0 ? "▲" : "▼";
+      }
+      function fires(score) {
+        let n = Math.min(Math.floor((score || 0) / 5), 5);
+        return "🔥".repeat(n);
+      }
+
+      // ─── Clock ───
+      setInterval(() => {
+        const d = new Date();
+        document.getElementById("clock").textContent =
+          d.toLocaleTimeString("vi", { hour: "2-digit", minute: "2-digit" }) +
+          " — " +
+          d.toLocaleDateString("vi", { day: "2-digit", month: "2-digit", year: "numeric" });
+      }, 1000);
+
+      // ─── Poll giá mỗi 5s ───
+      async function pollPrices() {
+        try {
+          const r = await fetch("/api/prices");
+          const data = await r.json();
+          updateGold(data.gold);
+          updateCrypto(data.crypto);
+        } catch (e) {
+          console.warn("poll err:", e);
+        }
+      }
+
+      function updateGold(gold) {
+        if (!gold?.data?.length) return;
+        const timeEl = document.getElementById("gold-time");
+        if (gold.time) timeEl.textContent = "🕐 " + gold.time + " — " + gold.date;
+
+        const grid = document.getElementById("gold-grid");
+        grid.innerHTML = gold.data
+          .map((g) => {
+            let priceHtml = "";
+            if (g.currency === "VND") {
+              priceHtml = `
+        <span>Mua: <span class="gold-val">${fmtVnd(g.buy)}</span></span>
+        <span>Bán: <span class="gold-val">${fmtVnd(g.sell)}</span></span>
+        ${g.change_sell ? `<span class="${chgClass(g.change_sell)}">${chgArrow(g.change_sell)} ${fmtVnd(Math.abs(g.change_sell))}</span>` : ""}
+      `;
+            } else {
+              priceHtml = `
+        <span>Giá: <span class="gold-val">$${g.buy?.toLocaleString("en", { maximumFractionDigits: 1 })}/oz</span></span>
+        ${g.change_buy ? `<span class="${chgClass(g.change_buy)}">${chgArrow(g.change_buy)} $${Math.abs(g.change_buy).toFixed(1)}</span>` : ""}
+      `;
+            }
+            return `<div class="gold-card"><div class="gold-name">${g.name}</div><div class="gold-prices">${priceHtml}</div></div>`;
+          })
+          .join("");
+      }
+
+      function updateCrypto(crypto) {
+        if (!crypto?.data?.length) return;
+        const tbody = document.getElementById("crypto-body");
+        tbody.innerHTML = crypto.data
+          .map(
+            (c) => `
+    <tr>
+      <td class="coin">${c.ky_hieu}</td>
+      <td class="r">${fmtUsd(c.usd)}</td>
+      <td class="r ${chgClass(c.thay_doi)}">${chgArrow(c.thay_doi)} ${Math.abs(c.thay_doi).toFixed(2)}%</td>
+      <td class="r">${fmtBig(c.von_hoa)}</td>
+      <td class="r">${fmtBig(c.kl)}</td>
+    </tr>
+  `,
+          )
+          .join("");
+
+        const btc = crypto.data.find((c) => c.ky_hieu === "BTC");
+        const vndEl = document.getElementById("btc-vnd");
+        if (vndEl && btc?.vnd) vndEl.textContent = "💱 1 BTC = " + btc.vnd.toLocaleString("vi") + " VNĐ";
+      }
+
+      setInterval(pollPrices, 15000);
+
+      // ─── GitHub refresh ───
+      async function refreshGithub(btn) {
+        btn.disabled = true;
+        btn.textContent = "⏳ Đang tải...";
+        try {
+          const r = await fetch("/api/github/refresh");
+          const data = await r.json();
+          if (data?.data?.length) {
+            const list = document.getElementById("github-list");
+            list.innerHTML = data.data
+              .map(
+                (r, i) => `
+        <div class="news-item">
+          <div class="news-num">${i + 1}</div>
+          <div class="news-body">
+            <div class="news-title">
+              <a href="${r.url}" target="_blank">${r.ten}</a>
+              ${r.ngon_ngu ? `<span class="gh-lang">${r.ngon_ngu}</span>` : ""}
+            </div>
+            ${r.tieu_de_vi ? `<div class="news-orig">📝 ${r.tieu_de_vi}</div>` : ""}
+            ${r.tom_tat ? `<div class="news-summary">💡 ${r.tom_tat}</div>` : r.mo_ta ? `<div class="news-summary">${r.mo_ta}</div>` : ""}
+            <div class="news-meta">
+              ${r.sao ? `<span>⭐ ${r.sao}</span>` : ""}
+              ${r.hom_nay ? `<span>📈 ${r.hom_nay}</span>` : ""}
+              <a href="${r.url}" target="_blank">🔗 GitHub</a>
+            </div>
+          </div>
+        </div>
+      `,
+              )
+              .join("");
+          }
+        } catch (e) {
+          console.warn("github err:", e);
+        }
+        btn.disabled = false;
+        btn.textContent = "🔄 Làm mới";
+      }
+    </script>
+  </body>
+</html>
