@@ -305,6 +305,15 @@
         background: var(--s3);
         color: var(--t);
       }
+      .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--t3);
+        font-size: 12px;
+        animation: pulse 1.5s infinite;
+      }
 
       /* Responsive — 2 cột trên tablet, 1 cột trên mobile */
       @media (max-width: 1024px) {
@@ -342,165 +351,73 @@
       <div class="pnl">
         <div class="pnl-h">
           <span class="pnl-t">💰 Giá Vàng</span>
-          <span class="badge b-hour">1 giờ</span>
-        </div>
-        <div class="pnl-body" id="gold-body">
-          <div class="g-row g-hdr">
-            <span class="g-name">Loại vàng</span>
-            <span class="g-col">Mua</span>
-            <span class="g-col">Bán</span>
-            <span class="g-col">Thay đổi</span>
+          <div>
+            <span class="badge b-hour">15 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('gold', '/api/gold/refresh', this)">↻</button>
           </div>
-          {% for g in gold.data %}
-          <div class="g-row">
-            <span class="g-name">{{ g.name }}</span>
-            {% if g.currency == 'VND' %}
-            <span class="g-val">{{ fmt_vnd(g.buy) }}</span>
-            <span class="g-val">{{ fmt_vnd(g.sell) }}</span>
-            <span class="g-col {{ 'up' if g.change_sell > 0 else 'dn' }}"
-              >{% if g.change_sell %}{{ '▲' if g.change_sell > 0 else '▼' }}{{ fmt_vnd(g.change_sell|abs) }}{% else
-              %}—{% endif %}</span
-            >
-            {% else %}
-            <span class="g-val">{{ fmt_usd(g.buy) }}/oz</span>
-            <span class="g-val">—</span>
-            <span class="g-col {{ 'up' if g.change_buy > 0 else 'dn' }}"
-              >{% if g.change_buy %}{{ '▲' if g.change_buy > 0 else '▼' }}${{ fmt_pct(g.change_buy) }}{% else %}—{%
-              endif %}</span
-            >
-            {% endif %}
-          </div>
-          {% endfor %}
         </div>
+        <div class="pnl-body" id="gold-body"><div class="loading">⏳ Đang tải...</div></div>
       </div>
 
       <!-- ═══ CRYPTO ═══ -->
       <div class="pnl">
         <div class="pnl-h">
           <span class="pnl-t">🪙 Crypto</span>
-          <span class="badge b-live">LIVE 5s</span>
-        </div>
-        <div class="pnl-body" id="crypto-body">
-          {% for c in crypto.data %}
-          <div class="c-row">
-            <span class="c-sym">{{ c.ky_hieu }}</span>
-            <span class="c-price">${{ fmt_usd2(c.usd) }}</span>
-            <span class="c-chg {{ 'up' if c.thay_doi >= 0 else 'dn' }}"
-              >{{ '▲' if c.thay_doi >= 0 else '▼' }}{{ fmt_pct(c.thay_doi|abs) }}%</span
-            >
-            <span class="c-cap">{{ fmt_big(c.von_hoa) }}</span>
+          <div>
+            <span class="badge b-live">LIVE 5s</span>
+            <button class="btn-sm" onclick="refreshPanel('crypto', '/api/crypto/refresh', this)">↻</button>
           </div>
-          {% endfor %}
         </div>
+        <div class="pnl-body" id="crypto-body"><div class="loading">⏳ Đang tải...</div></div>
       </div>
 
       <!-- ═══ TIN VN ═══ -->
       <div class="pnl">
         <div class="pnl-h">
           <span class="pnl-t">📰 Trong Nước</span>
-          <span class="badge b-hour">1 giờ</span>
-        </div>
-        <div class="pnl-body">
-          {% for t in vn_news.data %}
-          <div class="n-item">
-            <div class="n-title"><a href="{{ t.url }}" target="_blank">{{ t.tieu_de }}</a></div>
-            {% if t.tom_tat %}
-            <div class="n-sum">{{ t.tom_tat }}</div>
-            {% endif %}
-            <div class="n-meta">
-              <span class="n-src">{{ t.nguon }}</span>
-              {% if t._score %}<span class="fire">{{ '🔥' * ([((t._score // 5)|int), 5]|min) }}</span>{% endif %}
-            </div>
+          <div>
+            <span class="badge b-hour">15 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('vn_news', '/api/vn_news/refresh', this)">↻</button>
           </div>
-          {% endfor %}
         </div>
+        <div class="pnl-body" id="vn-body"><div class="loading">⏳ Đang tải...</div></div>
       </div>
 
       <!-- ═══ TIN QT ═══ -->
       <div class="pnl">
         <div class="pnl-h">
           <span class="pnl-t">🌍 Quốc Tế</span>
-          <span class="badge b-hour">1 giờ</span>
-        </div>
-        <div class="pnl-body">
-          {% for t in world_news.data %}
-          <div class="n-item">
-            <div class="n-title">
-              {{ '🌐' if t.can_dich else '' }}<a href="{{ t.url }}" target="_blank">{{ t.tieu_de_vi or t.tieu_de }}</a>
-            </div>
-            {% if t.tieu_de_vi %}
-            <div class="n-orig">{{ t.tieu_de }}</div>
-            {% endif %} {% if t.tom_tat %}
-            <div class="n-sum">{{ t.tom_tat }}</div>
-            {% endif %}
-            <div class="n-meta">
-              <span class="n-src">{{ t.nguon }}</span>
-              {% if t._score %}<span class="fire">{{ '🔥' * ([((t._score // 5)|int), 5]|min) }}</span>{% endif %}
-            </div>
+          <div>
+            <span class="badge b-hour">15 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('world_news', '/api/world_news/refresh', this)">↻</button>
           </div>
-          {% endfor %}
         </div>
+        <div class="pnl-body" id="world-body"><div class="loading">⏳ Đang tải...</div></div>
       </div>
 
       <!-- ═══ CÔNG NGHỆ ═══ -->
       <div class="pnl">
         <div class="pnl-h">
           <span class="pnl-t">💻 Hacker News</span>
-          <span class="badge b-hour">1 giờ</span>
-        </div>
-        <div class="pnl-body">
-          {% for t in tech_news.data %}
-          <div class="n-item">
-            <div class="n-title">
-              <a href="{{ t.url or t.hn_url }}" target="_blank">{{ t.tieu_de_vi or t.tieu_de }}</a>
-            </div>
-            {% if t.tieu_de_vi %}
-            <div class="n-orig">{{ t.tieu_de }}</div>
-            {% endif %} {% if t.tom_tat %}
-            <div class="n-sum">{{ t.tom_tat }}</div>
-            {% endif %}
-            <div class="n-meta">
-              <span>▲{{ t.diem }} · 💬{{ t.binh_luan }}</span>
-              {% if t._score %}<span class="fire">{{ '🔥' * ([((t._score // 5)|int), 5]|min) }}</span>{% endif %}
-              <a href="{{ t.hn_url }}" target="_blank">HN</a>
-            </div>
+          <div>
+            <span class="badge b-hour">15 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('tech_news', '/api/tech_news/refresh', this)">↻</button>
           </div>
-          {% endfor %}
         </div>
+        <div class="pnl-body" id="tech-body"><div class="loading">⏳ Đang tải...</div></div>
       </div>
 
       <!-- ═══ GITHUB ═══ -->
       <div class="pnl">
         <div class="pnl-h">
           <span class="pnl-t">🔥 GitHub</span>
-          <button class="btn-sm" onclick="refreshGH(this)">↻ Refresh</button>
+          <button class="btn-sm" onclick="refreshPanel('github', '/api/github/refresh', this)">↻ Refresh</button>
         </div>
-        <div class="pnl-body" id="gh-body">
-          {% for r in github.data %}
-          <div class="n-item">
-            <div class="n-title">
-              <a href="{{ r.url }}" target="_blank">{{ r.ten }}</a>
-              {% if r.ngon_ngu %}<span class="gh-lang">{{ r.ngon_ngu }}</span>{% endif %}
-            </div>
-            {% if r.tieu_de_vi %}
-            <div class="n-orig">{{ r.tieu_de_vi }}</div>
-            {% endif %} {% if r.tom_tat %}
-            <div class="n-sum">{{ r.tom_tat }}</div>
-            {% elif r.mo_ta %}
-            <div class="n-sum">{{ r.mo_ta }}</div>
-            {% endif %}
-            <div class="n-meta">
-              {% if r.sao %}<span>⭐{{ r.sao }}</span>{% endif %} {% if r.hom_nay %}<span>{{ r.hom_nay }}</span>{% endif
-              %}
-            </div>
-          </div>
-          {% endfor %}
-        </div>
+        <div class="pnl-body" id="gh-body"><div class="loading">⏳ Đang tải...</div></div>
       </div>
     </div>
 
     <script>
-      // Clock
       setInterval(() => {
         const d = new Date();
         document.getElementById("clock").textContent =
@@ -509,7 +426,12 @@
           d.toLocaleDateString("vi");
       }, 1000);
 
-      // Helpers
+      const esc = (s) => {
+        if (!s) return "";
+        const d = document.createElement("div");
+        d.textContent = String(s);
+        return d.innerHTML;
+      };
       const fV = (n) => (!n ? "—" : n >= 1e6 ? (n / 1e6).toFixed(1) + " triệu" : n.toLocaleString("vi") + "đ");
       const fU = (n) => (!n ? "—" : "$" + n.toLocaleString("en", { maximumFractionDigits: 2 }));
       const fB = (n) =>
@@ -522,42 +444,130 @@
               : "$" + n.toLocaleString("en");
       const cc = (v) => (v >= 0 ? "up" : "dn");
       const ca = (v) => (v >= 0 ? "▲" : "▼");
+      const fP = (n) => (n ? Math.abs(n).toFixed(2) : "0.00");
+      const fires = (s) => (s ? "🔥".repeat(Math.min(Math.floor(s / 5), 5)) : "");
 
-      // Poll crypto 5s
-      async function pollCrypto() {
+      // ─── RENDERERS ───
+      function renderGold(data) {
+        if (!data?.length) return;
+        const hdr = `<div class="g-row g-hdr"><span class="g-name">Loại vàng</span><span class="g-col">Mua</span><span class="g-col">Bán</span><span class="g-col">Thay đổi</span></div>`;
+        document.getElementById("gold-body").innerHTML =
+          hdr +
+          data
+            .map((g) => {
+              if (g.currency === "VND") {
+                const chg = g.change_sell ? `${g.change_sell > 0 ? "▲" : "▼"}${fV(Math.abs(g.change_sell))}` : "—";
+                return `<div class="g-row"><span class="g-name">${esc(g.name)}</span><span class="g-val">${fV(g.buy)}</span><span class="g-val">${fV(g.sell)}</span><span class="g-col ${g.change_sell > 0 ? "up" : "dn"}">${chg}</span></div>`;
+              }
+              const chg = g.change_buy ? `${g.change_buy > 0 ? "▲" : "▼"}$${fP(g.change_buy)}` : "—";
+              return `<div class="g-row"><span class="g-name">${esc(g.name)}</span><span class="g-val">${fU(g.buy)}/oz</span><span class="g-val">—</span><span class="g-col ${g.change_buy > 0 ? "up" : "dn"}">${chg}</span></div>`;
+            })
+            .join("");
+      }
+
+      function renderCrypto(data) {
+        if (!data?.length) return;
+        document.getElementById("crypto-body").innerHTML = data
+          .map(
+            (c) =>
+              `<div class="c-row"><span class="c-sym">${esc(c.ky_hieu)}</span><span class="c-price">${fU(c.usd)}</span><span class="c-chg ${cc(c.thay_doi)}">${ca(c.thay_doi)}${fP(c.thay_doi)}%</span><span class="c-cap">${fB(c.von_hoa)}</span></div>`,
+          )
+          .join("");
+      }
+
+      function renderVnNews(data) {
+        if (!data?.length) return;
+        document.getElementById("vn-body").innerHTML = data
+          .map(
+            (t) =>
+              `<div class="n-item"><div class="n-title"><a href="${esc(t.url)}" target="_blank">${esc(t.tieu_de)}</a></div>${t.tom_tat ? `<div class="n-sum">${esc(t.tom_tat)}</div>` : ""}<div class="n-meta"><span class="n-src">${esc(t.nguon)}</span>${t._score ? `<span class="fire">${fires(t._score)}</span>` : ""}</div></div>`,
+          )
+          .join("");
+      }
+
+      function renderWorldNews(data) {
+        if (!data?.length) return;
+        document.getElementById("world-body").innerHTML = data
+          .map((t) => {
+            const title = t.tieu_de_vi || t.tieu_de;
+            return `<div class="n-item"><div class="n-title">${t.can_dich ? "🌐" : ""}<a href="${esc(t.url)}" target="_blank">${esc(title)}</a></div>${t.tieu_de_vi ? `<div class="n-orig">${esc(t.tieu_de)}</div>` : ""}${t.tom_tat ? `<div class="n-sum">${esc(t.tom_tat)}</div>` : ""}<div class="n-meta"><span class="n-src">${esc(t.nguon)}</span>${t._score ? `<span class="fire">${fires(t._score)}</span>` : ""}</div></div>`;
+          })
+          .join("");
+      }
+
+      function renderTechNews(data) {
+        if (!data?.length) return;
+        document.getElementById("tech-body").innerHTML = data
+          .map((t) => {
+            const title = t.tieu_de_vi || t.tieu_de;
+            const url = t.url || t.hn_url;
+            return `<div class="n-item"><div class="n-title"><a href="${esc(url)}" target="_blank">${esc(title)}</a></div>${t.tieu_de_vi ? `<div class="n-orig">${esc(t.tieu_de)}</div>` : ""}${t.tom_tat ? `<div class="n-sum">${esc(t.tom_tat)}</div>` : ""}<div class="n-meta"><span>▲${t.diem} · 💬${t.binh_luan}</span>${t._score ? `<span class="fire">${fires(t._score)}</span>` : ""}<a href="${esc(t.hn_url)}" target="_blank">HN</a></div></div>`;
+          })
+          .join("");
+      }
+
+      function renderGithub(data) {
+        if (!data?.length) return;
+        document.getElementById("gh-body").innerHTML = data
+          .map(
+            (r) =>
+              `<div class="n-item"><div class="n-title"><a href="${esc(r.url)}" target="_blank">${esc(r.ten)}</a>${r.ngon_ngu ? `<span class="gh-lang">${esc(r.ngon_ngu)}</span>` : ""}</div>${r.tieu_de_vi ? `<div class="n-orig">${esc(r.tieu_de_vi)}</div>` : ""}${r.tom_tat ? `<div class="n-sum">${esc(r.tom_tat)}</div>` : r.mo_ta ? `<div class="n-sum">${esc(r.mo_ta)}</div>` : ""}<div class="n-meta">${r.sao ? `<span>⭐${esc(r.sao)}</span>` : ""}${r.hom_nay ? `<span>${esc(r.hom_nay)}</span>` : ""}</div></div>`,
+          )
+          .join("");
+      }
+
+      const renderers = {
+        gold: (d) => renderGold(d.data),
+        crypto: (d) => renderCrypto(d.data),
+        vn_news: (d) => renderVnNews(d.data),
+        world_news: (d) => renderWorldNews(d.data),
+        tech_news: (d) => renderTechNews(d.data),
+        github: (d) => renderGithub(d.data),
+      };
+
+      // ─── INITIAL LOAD ───
+      async function loadAll() {
+        const poll = async () => {
+          try {
+            const r = await fetch("/api/data");
+            const d = await r.json();
+            for (const [key, render] of Object.entries(renderers)) {
+              if (d[key]?.data?.length) render(d[key]);
+            }
+            return Object.values(d).every((v) => v?.data?.length > 0);
+          } catch (e) {
+            return false;
+          }
+        };
+        if (await poll()) return;
+        const iv = setInterval(async () => {
+          if (await poll()) clearInterval(iv);
+        }, 3000);
+      }
+      loadAll();
+
+      // ─── CRYPTO POLL ───
+      setInterval(async () => {
         try {
           const r = await fetch("/api/prices");
           const d = await r.json();
-          if (d.crypto?.data?.length) {
-            document.getElementById("crypto-body").innerHTML = d.crypto.data
-              .map(
-                (c) =>
-                  `<div class="c-row"><span class="c-sym">${c.ky_hieu}</span><span class="c-price">${fU(c.usd)}</span><span class="c-chg ${cc(c.thay_doi)}">${ca(c.thay_doi)}${Math.abs(c.thay_doi).toFixed(2)}%</span><span class="c-cap">${fB(c.von_hoa)}</span></div>`,
-              )
-              .join("");
-          }
+          if (d.crypto?.data?.length) renderCrypto(d.crypto.data);
+          if (d.gold?.data?.length) renderGold(d.gold.data);
         } catch (e) {}
-      }
-      setInterval(pollCrypto, 5000);
+      }, 5000);
 
-      // GitHub refresh
-      async function refreshGH(btn) {
+      // ─── REFRESH BUTTON ───
+      async function refreshPanel(key, url, btn) {
         btn.disabled = true;
-        btn.textContent = "⏳...";
+        const orig = btn.textContent;
+        btn.textContent = "⏳";
         try {
-          const r = await fetch("/api/github/refresh");
+          const r = await fetch(url);
           const d = await r.json();
-          if (d?.data?.length) {
-            document.getElementById("gh-body").innerHTML = d.data
-              .map(
-                (r) =>
-                  `<div class="n-item"><div class="n-title"><a href="${r.url}" target="_blank">${r.ten}</a>${r.ngon_ngu ? `<span class="gh-lang">${r.ngon_ngu}</span>` : ""}</div>${r.tieu_de_vi ? `<div class="n-orig">${r.tieu_de_vi}</div>` : ""}${r.tom_tat ? `<div class="n-sum">${r.tom_tat}</div>` : r.mo_ta ? `<div class="n-sum">${r.mo_ta}</div>` : ""}<div class="n-meta">${r.sao ? `<span>⭐${r.sao}</span>` : ""}${r.hom_nay ? `<span>${r.hom_nay}</span>` : ""}</div></div>`,
-              )
-              .join("");
-          }
+          if (d?.data?.length && renderers[key]) renderers[key](d);
         } catch (e) {}
         btn.disabled = false;
-        btn.textContent = "↻ Refresh";
+        btn.textContent = orig;
       }
     </script>
   </body>

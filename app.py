@@ -11,7 +11,7 @@ from pathlib import Path
 
 import asyncpg
 import feedparser
-import requests
+import httpx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
@@ -35,6 +35,7 @@ HEADERS = {
 REQUEST_TIMEOUT = 15
 
 db_pool: asyncpg.Pool | None = None
+http_client: httpx.AsyncClient | None = None
 
 # Templates
 BASE_DIR = Path(__file__).parent
@@ -140,9 +141,9 @@ async def log_crypto_prices(items: list[dict]):
                 "INSERT INTO prices (module,symbol,buy,sell,change_pct,raw_json) VALUES ($1,$2,$3,$4,$5,$6)",
                 "crypto",
                 c["ky_hieu"],
-                c["usd"],
-                0,
-                c["thay_doi"],
+                float(c["usd"]),
+                0.0,
+                float(c["thay_doi"]),
                 json.dumps(c, ensure_ascii=False),
             )
 
@@ -175,27 +176,28 @@ def deduplicate_batch(items, key="tieu_de"):
     return result
 
 
-def safe_get(url, **kwargs):
+async def safe_get(url, **kwargs):
     try:
-        r = requests.get(url, headers=HEADERS, timeout=REQUEST_TIMEOUT, **kwargs)
+        r = await http_client.get(url, **kwargs)
         r.raise_for_status()
         return r
-    except requests.RequestException as e:
+    except httpx.HTTPError as e:
         print(f"  ⚠ {e}")
         return None
 
 
-def fetch_multiple_rss(feeds, max_per_source=3):
+async def fetch_multiple_rss(feeds, max_per_source=3):
     all_items = []
     for source, url in feeds.items():
         try:
-            resp = requests.get(url, headers=HEADERS, timeout=REQUEST_TIMEOUT)
+            resp = await http_client.get(url)
             feed = feedparser.parse(resp.content)
             for entry in feed.entries[:max_per_source]:
                 desc = strip_html(entry.get("summary", entry.get("description", "")))
+                title = unescape(strip_html(entry.get("title", ""))).strip()
                 all_items.append({
                     "nguon": source,
-                    "tieu_de": entry.get("title", "").strip(),
+                    "tieu_de": title,
                     "mo_ta": desc[:200] + "..." if len(desc) > 200 else desc,
                     "url": entry.get("link", ""),
                 })
@@ -205,25 +207,25 @@ def fetch_multiple_rss(feeds, max_per_source=3):
 
 
 # ─── GEMINI ───
-def summarize_batch(
+async def summarize_batch(
     items, context="tin tức", key="tieu_de", viet_hoa=False, batch_size=7
 ):
     if not GEMINI_API_KEY or not items:
         return items
     for start in range(0, min(len(items), 15), batch_size):
         chunk = items[start : start + batch_size]
-        _summarize_chunk(chunk, start, items, context, key, viet_hoa)
+        await _summarize_chunk(chunk, start, items, context, key, viet_hoa)
     missing = [
         i
         for i, it in enumerate(items[:15])
         if viet_hoa and not it.get("tieu_de_vi") and it.get(key)
     ]
     for idx in missing:
-        _summarize_single(items, idx, context, key, viet_hoa)
+        await _summarize_single(items, idx, context, key, viet_hoa)
     return items
 
 
-def _summarize_chunk(chunk, offset, items, context, key, viet_hoa):
+async def _summarize_chunk(chunk, offset, items, context, key, viet_hoa):
     count = len(chunk)
     titles = "\n".join(
         f"{i + 1}. {it.get(key, '')}: {it.get('mo_ta', '')}"
@@ -235,7 +237,7 @@ def _summarize_chunk(chunk, offset, items, context, key, viet_hoa):
     else:
         prompt = f"Tóm tắt {count} {context} sau, mỗi cái 1 câu tiếng Việt.\nĐÚNG {count} dòng. Format: số. tóm tắt\nKHÔNG markdown.\n\n{titles}\n\nTrả lời:"
     try:
-        resp = requests.post(
+        resp = await http_client.post(
             url,
             json={
                 "contents": [{"parts": [{"text": prompt}]}],
@@ -267,7 +269,7 @@ def _summarize_chunk(chunk, offset, items, context, key, viet_hoa):
         print(f"  ⚠ Gemini: {e}")
 
 
-def _summarize_single(items, idx, context, key, viet_hoa):
+async def _summarize_single(items, idx, context, key, viet_hoa):
     item = items[idx]
     title = item.get(key, "")
     if not title:
@@ -275,7 +277,7 @@ def _summarize_single(items, idx, context, key, viet_hoa):
     url = GEMINI_URL.format(GEMINI_MODEL) + f"?key={GEMINI_API_KEY}"
     prompt = f"Dịch sang tiếng Việt và tóm tắt 1 câu.\nFormat: tiêu đề | tóm tắt\nKHÔNG markdown.\n\nTiêu đề: {title}\nMô tả: {item.get('mo_ta', '')}"
     try:
-        resp = requests.post(
+        resp = await http_client.post(
             url,
             json={
                 "contents": [{"parts": [{"text": prompt}]}],
@@ -388,16 +390,16 @@ GOLD_NAME_MAP = {
     "BTSJC": "Bảo Tín SJC",
 }
 GOLD_PRIORITY = ["SJL1L10", "SJ9999", "DOHNL", "PQHNVM", "BT9999NTT", "XAUUSD"]
-CRYPTO_IDS = ["bitcoin", "ethereum", "solana", "binancecoin", "ripple", "dogecoin"]
+BINANCE_URL = "https://api.binance.com/api/v3/ticker/24hr"
+CRYPTO_SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT"]
 CRYPTO_SYM = {
-    "bitcoin": "BTC",
-    "ethereum": "ETH",
-    "solana": "SOL",
-    "binancecoin": "BNB",
-    "ripple": "XRP",
-    "dogecoin": "DOGE",
+    "BTCUSDT": "BTC",
+    "ETHUSDT": "ETH",
+    "SOLUSDT": "SOL",
+    "BNBUSDT": "BNB",
+    "XRPUSDT": "XRP",
+    "DOGEUSDT": "DOGE",
 }
-CG_URL = "https://api.coingecko.com/api/v3/simple/price"
 HN_TOP = "https://hacker-news.firebaseio.com/v0/topstories.json"
 HN_ITEM = "https://hacker-news.firebaseio.com/v0/item/{}.json"
 
@@ -406,7 +408,7 @@ HN_ITEM = "https://hacker-news.firebaseio.com/v0/item/{}.json"
 # BACKGROUND JOBS
 # ═══════════════════════════════════════════════
 async def job_fetch_gold():
-    resp = safe_get(GOLD_API_URL)
+    resp = await safe_get(GOLD_API_URL)
     if not resp:
         return
     try:
@@ -441,29 +443,24 @@ async def job_fetch_gold():
 
 
 async def job_fetch_crypto():
-    params = {
-        "ids": ",".join(CRYPTO_IDS),
-        "vs_currencies": "usd,vnd",
-        "include_24hr_change": "true",
-        "include_market_cap": "true",
-        "include_24hr_vol": "true",
-    }
-    resp = safe_get(CG_URL, params=params)
+    symbols_str = json.dumps(CRYPTO_SYMBOLS, separators=(",", ":"))
+    resp = await safe_get(f"{BINANCE_URL}?symbols={symbols_str}")
     if not resp:
         return
     try:
-        data = resp.json()
+        ticker_map = {t["symbol"]: t for t in resp.json()}
         items = []
-        for c in CRYPTO_IDS:
-            if c not in data:
+        for sym in CRYPTO_SYMBOLS:
+            t = ticker_map.get(sym)
+            if not t:
                 continue
             items.append({
-                "ky_hieu": CRYPTO_SYM.get(c, c.upper()),
-                "usd": data[c].get("usd", 0),
-                "vnd": data[c].get("vnd", 0),
-                "thay_doi": round(data[c].get("usd_24h_change", 0), 2),
-                "von_hoa": data[c].get("usd_market_cap", 0),
-                "kl": data[c].get("usd_24h_vol", 0),
+                "ky_hieu": CRYPTO_SYM.get(sym, sym),
+                "usd": float(t.get("lastPrice", 0)),
+                "vnd": 0,
+                "thay_doi": round(float(t.get("priceChangePercent", 0)), 2),
+                "von_hoa": 0,
+                "kl": float(t.get("quoteVolume", 0)),
             })
         cache["crypto"] = {
             "data": items,
@@ -476,10 +473,10 @@ async def job_fetch_crypto():
 
 async def job_fetch_vn_news():
     print(f"[{datetime.now():%H:%M:%S}] vn_news...")
-    raw = fetch_multiple_rss(RSS_TIN_VN, 3)
+    raw = await fetch_multiple_rss(RSS_TIN_VN, 3)
     unique = deduplicate_batch(raw)
     ranked = rank_news(unique, 15)
-    ranked = summarize_batch(ranked, "tin tức trong nước")
+    ranked = await summarize_batch(ranked, "tin tức trong nước")
     cache["vn_news"] = {
         "data": ranked,
         "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -489,8 +486,8 @@ async def job_fetch_vn_news():
 
 async def job_fetch_world_news():
     print(f"[{datetime.now():%H:%M:%S}] world_news...")
-    vn = fetch_multiple_rss(RSS_TIN_QT_VN, 3)
-    intl = fetch_multiple_rss(RSS_TIN_QT_INTL, 3)
+    vn = await fetch_multiple_rss(RSS_TIN_QT_VN, 3)
+    intl = await fetch_multiple_rss(RSS_TIN_QT_INTL, 3)
     for i in intl:
         i["can_dich"] = True
     all_items = deduplicate_batch(vn + intl)
@@ -498,9 +495,9 @@ async def job_fetch_world_news():
     vn_b = [i for i in ranked if not i.get("can_dich")]
     en_b = [i for i in ranked if i.get("can_dich")]
     if vn_b:
-        vn_b = summarize_batch(vn_b, "tin quốc tế")
+        vn_b = await summarize_batch(vn_b, "tin quốc tế")
     if en_b:
-        en_b = summarize_batch(en_b, "tin quốc tế", viet_hoa=True)
+        en_b = await summarize_batch(en_b, "tin quốc tế", viet_hoa=True)
     result = sorted(vn_b + en_b, key=lambda x: x.get("_score", 0), reverse=True)
     cache["world_news"] = {
         "data": result,
@@ -511,7 +508,7 @@ async def job_fetch_world_news():
 
 async def job_fetch_tech_news():
     print(f"[{datetime.now():%H:%M:%S}] tech_news...")
-    resp = safe_get(HN_TOP)
+    resp = await safe_get(HN_TOP)
     if not resp:
         return
     try:
@@ -519,7 +516,7 @@ async def job_fetch_tech_news():
         for sid in resp.json()[:30]:
             if len(ds) >= 20:
                 break
-            r = safe_get(HN_ITEM.format(sid))
+            r = await safe_get(HN_ITEM.format(sid))
             if not r:
                 continue
             item = r.json()
@@ -532,7 +529,7 @@ async def job_fetch_tech_news():
                 "tac_gia": item.get("by", ""),
             })
         ds = rank_news(ds, 10)
-        ds = summarize_batch(ds, "bài viết công nghệ", viet_hoa=True)
+        ds = await summarize_batch(ds, "bài viết công nghệ", viet_hoa=True)
         cache["tech_news"] = {
             "data": ds,
             "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -544,7 +541,7 @@ async def job_fetch_tech_news():
 
 async def job_fetch_github():
     print(f"[{datetime.now():%H:%M:%S}] github...")
-    resp = safe_get("https://github.com/trending", params={"since": "daily"})
+    resp = await safe_get("https://github.com/trending", params={"since": "daily"})
     if not resp:
         return
     try:
@@ -573,7 +570,9 @@ async def job_fetch_github():
                 "url": f"https://github.com/{name}",
             })
         if repos and GEMINI_API_KEY:
-            repos = summarize_batch(repos, "dự án GitHub", key="ten", viet_hoa=True)
+            repos = await summarize_batch(
+                repos, "dự án GitHub", key="ten", viet_hoa=True
+            )
         cache["github"] = {
             "data": repos,
             "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -591,26 +590,36 @@ scheduler = AsyncIOScheduler()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global http_client
+    http_client = httpx.AsyncClient(headers=HEADERS, timeout=REQUEST_TIMEOUT)
     await init_db()
     print("✅ PostgreSQL connected")
-    await asyncio.gather(
+    bg_task = asyncio.gather(
         job_fetch_gold(),
         job_fetch_crypto(),
         job_fetch_vn_news(),
         job_fetch_world_news(),
         job_fetch_tech_news(),
         job_fetch_github(),
+        return_exceptions=True,
     )
-    print("✅ Initial fetch done")
-    scheduler.add_job(job_fetch_gold, "interval", seconds=15, id="gold")
-    scheduler.add_job(job_fetch_crypto, "interval", seconds=30, id="crypto")
-    scheduler.add_job(job_fetch_vn_news, "interval", hours=1, id="vn_news")
-    scheduler.add_job(job_fetch_world_news, "interval", hours=1, id="world_news")
-    scheduler.add_job(job_fetch_tech_news, "interval", hours=1, id="tech_news")
+    print("✅ Background fetch started")
+    scheduler.add_job(job_fetch_gold, "interval", minutes=15, id="gold")
+    scheduler.add_job(job_fetch_crypto, "interval", seconds=5, id="crypto")
+    scheduler.add_job(job_fetch_vn_news, "interval", minutes=15, id="vn_news")
+    scheduler.add_job(job_fetch_world_news, "interval", minutes=15, id="world_news")
+    scheduler.add_job(job_fetch_tech_news, "interval", minutes=15, id="tech_news")
     scheduler.start()
     print("✅ Scheduler started")
     yield
     scheduler.shutdown()
+    bg_task.cancel()
+    try:
+        await bg_task
+    except asyncio.CancelledError:
+        pass
+    if http_client:
+        await http_client.aclose()
     if db_pool:
         await db_pool.close()
 
@@ -660,15 +669,57 @@ templates.env.globals["fmt_pct"] = jinja_fmt_pct
 
 
 # ─── JSON API (cho AJAX polling) ───
+_refresh_locks = {}
+
+
+async def _rate_limited_refresh(key, job_fn, min_interval=60):
+    now = datetime.now(timezone.utc)
+    last = _refresh_locks.get(key)
+    if last and (now - last).total_seconds() < min_interval:
+        return cache[key]
+    _refresh_locks[key] = now
+    await job_fn()
+    return cache[key]
+
+
+@app.get("/api/data")
+async def api_data():
+    return cache
+
+
 @app.get("/api/prices")
 async def api_prices():
     return {"gold": cache["gold"], "crypto": cache["crypto"]}
 
 
+@app.get("/api/gold/refresh")
+async def api_gold_refresh():
+    return await _rate_limited_refresh("gold", job_fetch_gold, 30)
+
+
+@app.get("/api/crypto/refresh")
+async def api_crypto_refresh():
+    return await _rate_limited_refresh("crypto", job_fetch_crypto, 5)
+
+
+@app.get("/api/vn_news/refresh")
+async def api_vn_news_refresh():
+    return await _rate_limited_refresh("vn_news", job_fetch_vn_news)
+
+
+@app.get("/api/world_news/refresh")
+async def api_world_news_refresh():
+    return await _rate_limited_refresh("world_news", job_fetch_world_news)
+
+
+@app.get("/api/tech_news/refresh")
+async def api_tech_news_refresh():
+    return await _rate_limited_refresh("tech_news", job_fetch_tech_news)
+
+
 @app.get("/api/github/refresh")
 async def api_github_refresh():
-    await job_fetch_github()
-    return cache["github"]
+    return await _rate_limited_refresh("github", job_fetch_github)
 
 
 # ─── HTML PAGE ───
