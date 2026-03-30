@@ -8,334 +8,7 @@
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>"
     />
-    <style>
-      :root {
-        --bg: #0b1120;
-        --s1: #141c2e;
-        --s2: #1e293b;
-        --s3: #2a3550;
-        --t: #e2e8f0;
-        --t2: #94a3b8;
-        --t3: #64748b;
-        --bl: #3b82f6;
-        --gn: #22c55e;
-        --rd: #ef4444;
-        --yl: #fbbf24;
-        --cy: #22d3ee;
-      }
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      html {
-        font-size: 13px;
-      }
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: var(--bg);
-        color: var(--t);
-        line-height: 1.35;
-        height: 100vh;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-      }
-      a {
-        color: var(--cy);
-        text-decoration: none;
-      }
-      a:hover {
-        text-decoration: underline;
-      }
-
-      /* Header bar */
-      .hdr {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 6px 14px;
-        background: var(--s1);
-        border-bottom: 1px solid var(--s2);
-        flex-shrink: 0;
-      }
-      .hdr h1 {
-        font-size: 15px;
-        font-weight: 700;
-      }
-      .hdr-r {
-        font-size: 11px;
-        color: var(--t3);
-        display: flex;
-        gap: 12px;
-        align-items: center;
-      }
-      .dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--gn);
-        display: inline-block;
-        animation: pulse 2s infinite;
-      }
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.3;
-        }
-      }
-
-      /* Main grid — 3 cột, fill viewport */
-      .grid {
-        flex: 1;
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        grid-template-rows: auto 1fr;
-        gap: 1px;
-        background: var(--s2);
-        overflow: hidden;
-        min-height: 0;
-      }
-
-      /* Panel chung */
-      .pnl {
-        background: var(--s1);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        min-height: 0;
-      }
-      .pnl-h {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 5px 10px;
-        background: var(--s2);
-        flex-shrink: 0;
-      }
-      .pnl-t {
-        font-size: 12px;
-        font-weight: 700;
-      }
-      .badge {
-        font-size: 9px;
-        padding: 1px 6px;
-        border-radius: 8px;
-        font-weight: 600;
-      }
-      .b-live {
-        background: rgba(239, 68, 68, 0.15);
-        color: var(--rd);
-      }
-      .b-hour {
-        background: rgba(59, 130, 246, 0.15);
-        color: var(--bl);
-      }
-      .b-man {
-        background: rgba(34, 211, 238, 0.15);
-        color: var(--cy);
-      }
-      .pnl-body {
-        flex: 1;
-        overflow-y: auto;
-        padding: 6px 8px;
-        min-height: 0;
-      }
-
-      /* Scrollbar mỏng */
-      .pnl-body::-webkit-scrollbar {
-        width: 3px;
-      }
-      .pnl-body::-webkit-scrollbar-thumb {
-        background: var(--s3);
-        border-radius: 3px;
-      }
-
-      /* Gold compact */
-      .g-row {
-        display: flex;
-        align-items: center;
-        padding: 3px 0;
-        border-bottom: 1px solid rgba(42, 53, 80, 0.4);
-        font-size: 11px;
-      }
-      .g-row:last-child {
-        border: none;
-      }
-      .g-hdr {
-        font-size: 10px;
-        color: var(--t3);
-        font-weight: 600;
-        text-transform: uppercase;
-        border-bottom: 1px solid var(--s3);
-        padding-bottom: 4px;
-        margin-bottom: 2px;
-        position: sticky;
-        top: 0;
-        background: var(--s1);
-      }
-      .g-name {
-        color: var(--t2);
-        flex: 1;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        margin-right: 6px;
-      }
-      .g-col {
-        width: 72px;
-        text-align: right;
-        flex-shrink: 0;
-      }
-      .g-val {
-        color: var(--yl);
-        font-weight: 600;
-        width: 72px;
-        text-align: right;
-        flex-shrink: 0;
-      }
-      .up {
-        color: var(--gn);
-      }
-      .dn {
-        color: var(--rd);
-      }
-
-      /* Crypto compact */
-      .c-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 3px 0;
-        border-bottom: 1px solid rgba(42, 53, 80, 0.4);
-        font-size: 11px;
-      }
-      .c-row:last-child {
-        border: none;
-      }
-      .c-sym {
-        font-weight: 700;
-        width: 40px;
-      }
-      .c-price {
-        color: var(--yl);
-        font-weight: 600;
-        flex: 1;
-        text-align: right;
-        margin: 0 8px;
-      }
-      .c-chg {
-        width: 65px;
-        text-align: right;
-        font-weight: 600;
-      }
-      .c-cap {
-        width: 60px;
-        text-align: right;
-        color: var(--t3);
-      }
-
-      /* News compact */
-      .n-item {
-        padding: 4px 0;
-        border-bottom: 1px solid rgba(42, 53, 80, 0.3);
-        font-size: 11px;
-      }
-      .n-item:last-child {
-        border: none;
-      }
-      .n-title {
-        font-weight: 600;
-        line-height: 1.3;
-      }
-      .n-title a {
-        color: var(--t);
-      }
-      .n-title a:hover {
-        color: var(--bl);
-      }
-      .n-orig {
-        color: var(--t3);
-        font-size: 10px;
-        margin-top: 1px;
-      }
-      .n-sum {
-        color: var(--t2);
-        font-size: 10px;
-        margin-top: 1px;
-      }
-      .n-meta {
-        color: var(--t3);
-        font-size: 10px;
-        margin-top: 2px;
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-      }
-      .n-src {
-        color: var(--bl);
-        font-weight: 500;
-      }
-      .fire {
-        letter-spacing: -2px;
-      }
-
-      /* GitHub compact */
-      .gh-lang {
-        background: var(--s3);
-        color: var(--t2);
-        border-radius: 3px;
-        padding: 0 4px;
-        font-size: 9px;
-        margin-left: 4px;
-      }
-      .btn-sm {
-        padding: 2px 8px;
-        border: 1px solid var(--s3);
-        border-radius: 4px;
-        background: transparent;
-        color: var(--t2);
-        cursor: pointer;
-        font-size: 10px;
-      }
-      .btn-sm:hover {
-        background: var(--s3);
-        color: var(--t);
-      }
-      .loading {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        color: var(--t3);
-        font-size: 12px;
-        animation: pulse 1.5s infinite;
-      }
-
-      /* Responsive — 2 cột trên tablet, 1 cột trên mobile */
-      @media (max-width: 1024px) {
-        .grid {
-          grid-template-columns: 1fr 1fr;
-        }
-      }
-      @media (max-width: 640px) {
-        .grid {
-          grid-template-columns: 1fr;
-        }
-        body {
-          overflow: auto;
-        }
-        .grid {
-          overflow: visible;
-        }
-        .pnl-body {
-          max-height: 300px;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="/static/css/dashboard.css" />
   </head>
   <body>
     <div class="hdr">
@@ -343,12 +16,42 @@
       <div class="hdr-r">
         <span><span class="dot"></span> Live</span>
         <span id="clock">{{ now }}</span>
+        <button class="cfg-btn" onclick="openConfig()">⚙ Bố cục</button>
       </div>
     </div>
 
-    <div class="grid">
+    <!-- CONFIG OVERLAY -->
+    <div class="cfg-overlay" id="cfgOverlay" onclick="closeConfig(event)">
+      <div class="cfg-panel" onclick="event.stopPropagation()">
+        <div class="cfg-hdr">
+          <span>⚙ Cấu hình bảng tin</span>
+          <button class="cfg-close" onclick="closeConfig()">✕</button>
+        </div>
+        <div class="cfg-body">
+          <div class="cfg-section">
+            <div class="cfg-section-title">Số cột</div>
+            <div class="cfg-cols">
+              <button class="cfg-col-btn" data-cols="1" onclick="setColsOverride(1)">1</button>
+              <button class="cfg-col-btn" data-cols="2" onclick="setColsOverride(2)">2</button>
+              <button class="cfg-col-btn" data-cols="3" onclick="setColsOverride(3)">3</button>
+              <button class="cfg-col-btn" data-cols="auto" onclick="setColsOverride('auto')">Tự động</button>
+            </div>
+          </div>
+          <div class="cfg-section">
+            <div class="cfg-section-title">Hiển thị Panel</div>
+            <div id="cfgPanelList"></div>
+          </div>
+        </div>
+        <div class="cfg-footer">
+          <button onclick="showAllPanels()">Hiện tất cả</button>
+          <button onclick="resetConfig()">Đặt lại</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" id="mainGrid">
       <!-- ═══ VÀNG ═══ -->
-      <div class="pnl">
+      <div class="pnl" data-key="gold" data-label="💰 Giá Vàng">
         <div class="pnl-h">
           <span class="pnl-t">💰 Giá Vàng</span>
           <div>
@@ -360,7 +63,7 @@
       </div>
 
       <!-- ═══ CRYPTO ═══ -->
-      <div class="pnl">
+      <div class="pnl" data-key="crypto" data-label="🪙 Crypto">
         <div class="pnl-h">
           <span class="pnl-t">🪙 Crypto</span>
           <div>
@@ -372,7 +75,7 @@
       </div>
 
       <!-- ═══ TIN VN ═══ -->
-      <div class="pnl">
+      <div class="pnl" data-key="vn_news" data-label="📰 Trong Nước">
         <div class="pnl-h">
           <span class="pnl-t">📰 Trong Nước</span>
           <div>
@@ -384,7 +87,7 @@
       </div>
 
       <!-- ═══ TIN QT ═══ -->
-      <div class="pnl">
+      <div class="pnl" data-key="world_news" data-label="🌍 Quốc Tế">
         <div class="pnl-h">
           <span class="pnl-t">🌍 Quốc Tế</span>
           <div>
@@ -396,7 +99,7 @@
       </div>
 
       <!-- ═══ CÔNG NGHỆ ═══ -->
-      <div class="pnl">
+      <div class="pnl" data-key="tech_news" data-label="💻 Hacker News">
         <div class="pnl-h">
           <span class="pnl-t">💻 Hacker News</span>
           <div>
@@ -408,167 +111,108 @@
       </div>
 
       <!-- ═══ GITHUB ═══ -->
-      <div class="pnl">
+      <div class="pnl" data-key="github" data-label="🔥 GitHub Trending">
         <div class="pnl-h">
           <span class="pnl-t">🔥 GitHub</span>
           <button class="btn-sm" onclick="refreshPanel('github', '/api/github/refresh', this)">↻ Refresh</button>
         </div>
         <div class="pnl-body" id="gh-body"><div class="loading">⏳ Đang tải...</div></div>
       </div>
+
+      <!-- ═══ TỶ GIÁ ═══ -->
+      <div class="pnl" data-key="forex" data-label="💱 Tỷ Giá VCB">
+        <div class="pnl-h">
+          <span class="pnl-t">💱 Tỷ Giá VCB</span>
+          <div>
+            <span class="badge b-hour">30 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('forex', '/api/forex/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="forex-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ CHỨNG KHOÁN ═══ -->
+      <div class="pnl" data-key="stock" data-label="📈 Chứng Khoán VN30">
+        <div class="pnl-h">
+          <span class="pnl-t">📈 Chứng Khoán</span>
+          <div>
+            <span class="badge b-live">5 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('stock', '/api/stock/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="stock-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ XĂNG DẦU ═══ -->
+      <div class="pnl" data-key="oil" data-label="⛽ Giá Xăng Dầu VN">
+        <div class="pnl-h">
+          <span class="pnl-t">⛽ Giá Xăng Dầu VN</span>
+          <div>
+            <span class="badge b-hour">30 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('oil', '/api/oil/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="oil-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ THỜI TIẾT ═══ -->
+      <div class="pnl" data-key="weather" data-label="🌤 Thời Tiết">
+        <div class="pnl-h">
+          <span class="pnl-t">🌤 Thời Tiết</span>
+          <div>
+            <span class="badge b-hour">30 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('weather', '/api/weather/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="weather-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ LỊCH ÂM ═══ -->
+      <div class="pnl" data-key="lunar" data-label="📅 Lịch Âm">
+        <div class="pnl-h">
+          <span class="pnl-t">📅 Lịch Âm</span>
+          <div><span class="badge b-man">1 giờ</span></div>
+        </div>
+        <div class="pnl-body" id="lunar-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ PRODUCT HUNT ═══ -->
+      <div class="pnl" data-key="producthunt" data-label="🚀 Product Hunt">
+        <div class="pnl-h">
+          <span class="pnl-t">🚀 Product Hunt</span>
+          <div>
+            <span class="badge b-hour">2 giờ</span>
+            <button class="btn-sm" onclick="refreshPanel('producthunt', '/api/producthunt/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="ph-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ DEV BLOG ═══ -->
+      <div class="pnl" data-key="devblog" data-label="📝 Dev Blog">
+        <div class="pnl-h">
+          <span class="pnl-t">📝 Dev Blog</span>
+          <div>
+            <span class="badge b-hour">30 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('devblog', '/api/devblog/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="devblog-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ SỰ KIỆN ═══ -->
+      <div class="pnl" data-key="events" data-label="📆 Sự Kiện Tech">
+        <div class="pnl-h">
+          <span class="pnl-t">📆 Sự Kiện Tech</span>
+          <div>
+            <span class="badge b-man">6 giờ</span>
+            <button class="btn-sm" onclick="refreshPanel('events', '/api/events/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="events-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
     </div>
 
-    <script>
-      setInterval(() => {
-        const d = new Date();
-        document.getElementById("clock").textContent =
-          d.toLocaleTimeString("vi", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) +
-          " — " +
-          d.toLocaleDateString("vi");
-      }, 1000);
-
-      const esc = (s) => {
-        if (!s) return "";
-        const d = document.createElement("div");
-        d.textContent = String(s);
-        return d.innerHTML;
-      };
-      const fV = (n) => (!n ? "—" : n >= 1e6 ? (n / 1e6).toFixed(1) + " triệu" : n.toLocaleString("vi") + "đ");
-      const fU = (n) => (!n ? "—" : "$" + n.toLocaleString("en", { maximumFractionDigits: 2 }));
-      const fB = (n) =>
-        !n
-          ? "—"
-          : n >= 1e9
-            ? "$" + (n / 1e9).toFixed(1) + "B"
-            : n >= 1e6
-              ? "$" + (n / 1e6).toFixed(1) + "M"
-              : "$" + n.toLocaleString("en");
-      const cc = (v) => (v >= 0 ? "up" : "dn");
-      const ca = (v) => (v >= 0 ? "▲" : "▼");
-      const fP = (n) => (n ? Math.abs(n).toFixed(2) : "0.00");
-      const fires = (s) => (s ? "🔥".repeat(Math.min(Math.floor(s / 5), 5)) : "");
-
-      // ─── RENDERERS ───
-      function renderGold(data) {
-        if (!data?.length) return;
-        const hdr = `<div class="g-row g-hdr"><span class="g-name">Loại vàng</span><span class="g-col">Mua</span><span class="g-col">Bán</span><span class="g-col">Thay đổi</span></div>`;
-        document.getElementById("gold-body").innerHTML =
-          hdr +
-          data
-            .map((g) => {
-              if (g.currency === "VND") {
-                const chg = g.change_sell ? `${g.change_sell > 0 ? "▲" : "▼"}${fV(Math.abs(g.change_sell))}` : "—";
-                return `<div class="g-row"><span class="g-name">${esc(g.name)}</span><span class="g-val">${fV(g.buy)}</span><span class="g-val">${fV(g.sell)}</span><span class="g-col ${g.change_sell > 0 ? "up" : "dn"}">${chg}</span></div>`;
-              }
-              const chg = g.change_buy ? `${g.change_buy > 0 ? "▲" : "▼"}$${fP(g.change_buy)}` : "—";
-              return `<div class="g-row"><span class="g-name">${esc(g.name)}</span><span class="g-val">${fU(g.buy)}/oz</span><span class="g-val">—</span><span class="g-col ${g.change_buy > 0 ? "up" : "dn"}">${chg}</span></div>`;
-            })
-            .join("");
-      }
-
-      function renderCrypto(data) {
-        if (!data?.length) return;
-        document.getElementById("crypto-body").innerHTML = data
-          .map(
-            (c) =>
-              `<div class="c-row"><span class="c-sym">${esc(c.ky_hieu)}</span><span class="c-price">${fU(c.usd)}</span><span class="c-chg ${cc(c.thay_doi)}">${ca(c.thay_doi)}${fP(c.thay_doi)}%</span><span class="c-cap">${fB(c.von_hoa)}</span></div>`,
-          )
-          .join("");
-      }
-
-      function renderVnNews(data) {
-        if (!data?.length) return;
-        document.getElementById("vn-body").innerHTML = data
-          .map(
-            (t) =>
-              `<div class="n-item"><div class="n-title"><a href="${esc(t.url)}" target="_blank">${esc(t.tieu_de)}</a></div>${t.tom_tat ? `<div class="n-sum">${esc(t.tom_tat)}</div>` : ""}<div class="n-meta"><span class="n-src">${esc(t.nguon)}</span>${t._score ? `<span class="fire">${fires(t._score)}</span>` : ""}</div></div>`,
-          )
-          .join("");
-      }
-
-      function renderWorldNews(data) {
-        if (!data?.length) return;
-        document.getElementById("world-body").innerHTML = data
-          .map((t) => {
-            const title = t.tieu_de_vi || t.tieu_de;
-            return `<div class="n-item"><div class="n-title">${t.can_dich ? "🌐" : ""}<a href="${esc(t.url)}" target="_blank">${esc(title)}</a></div>${t.tieu_de_vi ? `<div class="n-orig">${esc(t.tieu_de)}</div>` : ""}${t.tom_tat ? `<div class="n-sum">${esc(t.tom_tat)}</div>` : ""}<div class="n-meta"><span class="n-src">${esc(t.nguon)}</span>${t._score ? `<span class="fire">${fires(t._score)}</span>` : ""}</div></div>`;
-          })
-          .join("");
-      }
-
-      function renderTechNews(data) {
-        if (!data?.length) return;
-        document.getElementById("tech-body").innerHTML = data
-          .map((t) => {
-            const title = t.tieu_de_vi || t.tieu_de;
-            const url = t.url || t.hn_url;
-            return `<div class="n-item"><div class="n-title"><a href="${esc(url)}" target="_blank">${esc(title)}</a></div>${t.tieu_de_vi ? `<div class="n-orig">${esc(t.tieu_de)}</div>` : ""}${t.tom_tat ? `<div class="n-sum">${esc(t.tom_tat)}</div>` : ""}<div class="n-meta"><span>▲${t.diem} · 💬${t.binh_luan}</span>${t._score ? `<span class="fire">${fires(t._score)}</span>` : ""}<a href="${esc(t.hn_url)}" target="_blank">HN</a></div></div>`;
-          })
-          .join("");
-      }
-
-      function renderGithub(data) {
-        if (!data?.length) return;
-        document.getElementById("gh-body").innerHTML = data
-          .map(
-            (r) =>
-              `<div class="n-item"><div class="n-title"><a href="${esc(r.url)}" target="_blank">${esc(r.ten)}</a>${r.ngon_ngu ? `<span class="gh-lang">${esc(r.ngon_ngu)}</span>` : ""}</div>${r.tieu_de_vi ? `<div class="n-orig">${esc(r.tieu_de_vi)}</div>` : ""}${r.tom_tat ? `<div class="n-sum">${esc(r.tom_tat)}</div>` : r.mo_ta ? `<div class="n-sum">${esc(r.mo_ta)}</div>` : ""}<div class="n-meta">${r.sao ? `<span>⭐${esc(r.sao)}</span>` : ""}${r.hom_nay ? `<span>${esc(r.hom_nay)}</span>` : ""}</div></div>`,
-          )
-          .join("");
-      }
-
-      const renderers = {
-        gold: (d) => renderGold(d.data),
-        crypto: (d) => renderCrypto(d.data),
-        vn_news: (d) => renderVnNews(d.data),
-        world_news: (d) => renderWorldNews(d.data),
-        tech_news: (d) => renderTechNews(d.data),
-        github: (d) => renderGithub(d.data),
-      };
-
-      // ─── INITIAL LOAD ───
-      async function loadAll() {
-        const poll = async () => {
-          try {
-            const r = await fetch("/api/data");
-            const d = await r.json();
-            for (const [key, render] of Object.entries(renderers)) {
-              if (d[key]?.data?.length) render(d[key]);
-            }
-            return Object.values(d).every((v) => v?.data?.length > 0);
-          } catch (e) {
-            return false;
-          }
-        };
-        if (await poll()) return;
-        const iv = setInterval(async () => {
-          if (await poll()) clearInterval(iv);
-        }, 3000);
-      }
-      loadAll();
-
-      // ─── CRYPTO POLL ───
-      setInterval(async () => {
-        try {
-          const r = await fetch("/api/prices");
-          const d = await r.json();
-          if (d.crypto?.data?.length) renderCrypto(d.crypto.data);
-          if (d.gold?.data?.length) renderGold(d.gold.data);
-        } catch (e) {}
-      }, 5000);
-
-      // ─── REFRESH BUTTON ───
-      async function refreshPanel(key, url, btn) {
-        btn.disabled = true;
-        const orig = btn.textContent;
-        btn.textContent = "⏳";
-        try {
-          const r = await fetch(url);
-          const d = await r.json();
-          if (d?.data?.length && renderers[key]) renderers[key](d);
-        } catch (e) {}
-        btn.disabled = false;
-        btn.textContent = orig;
-      }
-    </script>
+    <script src="/static/js/dashboard.js"></script>
   </body>
 </html>
