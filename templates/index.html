@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bản Tin Tổng Hợp</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>"
+    />
+    <link rel="stylesheet" href="/static/css/dashboard.css" />
+  </head>
+  <body>
+    <div class="hdr">
+      <h1>📋 Bản Tin Tổng Hợp</h1>
+      <div class="hdr-r">
+        <span><span class="dot"></span> Live</span>
+        <span id="clock">{{ now }}</span>
+        <button class="cfg-btn" onclick="openConfig()">⚙ Bố cục</button>
+      </div>
+    </div>
+
+    <!-- CONFIG OVERLAY -->
+    <div class="cfg-overlay" id="cfgOverlay" onclick="closeConfig(event)">
+      <div class="cfg-panel" onclick="event.stopPropagation()">
+        <div class="cfg-hdr">
+          <span>⚙ Cấu hình bảng tin</span>
+          <button class="cfg-close" onclick="closeConfig()">✕</button>
+        </div>
+        <div class="cfg-body">
+          <div class="cfg-section">
+            <div class="cfg-section-title">Số cột</div>
+            <div class="cfg-cols">
+              <button class="cfg-col-btn" data-cols="1" onclick="setColsOverride(1)">1</button>
+              <button class="cfg-col-btn" data-cols="2" onclick="setColsOverride(2)">2</button>
+              <button class="cfg-col-btn" data-cols="3" onclick="setColsOverride(3)">3</button>
+              <button class="cfg-col-btn" data-cols="auto" onclick="setColsOverride('auto')">Tự động</button>
+            </div>
+          </div>
+          <div class="cfg-section">
+            <div class="cfg-section-title">Hiển thị Panel</div>
+            <div id="cfgPanelList"></div>
+          </div>
+        </div>
+        <div class="cfg-footer">
+          <button onclick="showAllPanels()">Hiện tất cả</button>
+          <button onclick="resetConfig()">Đặt lại</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" id="mainGrid">
+      <!-- ═══ VÀNG ═══ -->
+      <div class="pnl" data-key="gold" data-label="💰 Giá Vàng">
+        <div class="pnl-h">
+          <span class="pnl-t">💰 Giá Vàng</span>
+          <div>
+            <span class="badge b-hour">15 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('gold', '/api/gold/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="gold-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ CRYPTO ═══ -->
+      <div class="pnl" data-key="crypto" data-label="🪙 Crypto">
+        <div class="pnl-h">
+          <span class="pnl-t">🪙 Crypto</span>
+          <div>
+            <span class="badge b-live">LIVE 5s</span>
+            <button class="btn-sm" onclick="refreshPanel('crypto', '/api/crypto/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="crypto-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ TIN VN ═══ -->
+      <div class="pnl" data-key="vn_news" data-label="📰 Trong Nước">
+        <div class="pnl-h">
+          <span class="pnl-t">📰 Trong Nước</span>
+          <div>
+            <span class="badge b-hour">15 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('vn_news', '/api/vn_news/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="vn-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ TIN QT ═══ -->
+      <div class="pnl" data-key="world_news" data-label="🌍 Quốc Tế">
+        <div class="pnl-h">
+          <span class="pnl-t">🌍 Quốc Tế</span>
+          <div>
+            <span class="badge b-hour">15 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('world_news', '/api/world_news/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="world-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ CÔNG NGHỆ ═══ -->
+      <div class="pnl" data-key="tech_news" data-label="💻 Hacker News">
+        <div class="pnl-h">
+          <span class="pnl-t">💻 Hacker News</span>
+          <div>
+            <span class="badge b-hour">15 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('tech_news', '/api/tech_news/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="tech-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ GITHUB ═══ -->
+      <div class="pnl" data-key="github" data-label="🔥 GitHub Trending">
+        <div class="pnl-h">
+          <span class="pnl-t">🔥 GitHub</span>
+          <button class="btn-sm" onclick="refreshPanel('github', '/api/github/refresh', this)">↻ Refresh</button>
+        </div>
+        <div class="pnl-body" id="gh-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ TỶ GIÁ ═══ -->
+      <div class="pnl" data-key="forex" data-label="💱 Tỷ Giá VCB">
+        <div class="pnl-h">
+          <span class="pnl-t">💱 Tỷ Giá VCB</span>
+          <div>
+            <span class="badge b-hour">30 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('forex', '/api/forex/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="forex-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ CHỨNG KHOÁN ═══ -->
+      <div class="pnl" data-key="stock" data-label="📈 Chứng Khoán VN30">
+        <div class="pnl-h">
+          <span class="pnl-t">📈 Chứng Khoán</span>
+          <div>
+            <span class="badge b-live">5 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('stock', '/api/stock/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="stock-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ XĂNG DẦU ═══ -->
+      <div class="pnl" data-key="oil" data-label="⛽ Giá Xăng Dầu VN">
+        <div class="pnl-h">
+          <span class="pnl-t">⛽ Giá Xăng Dầu VN</span>
+          <div>
+            <span class="badge b-hour">30 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('oil', '/api/oil/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="oil-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ THỜI TIẾT ═══ -->
+      <div class="pnl" data-key="weather" data-label="🌤 Thời Tiết">
+        <div class="pnl-h">
+          <span class="pnl-t">🌤 Thời Tiết</span>
+          <div>
+            <span class="badge b-hour">30 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('weather', '/api/weather/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="weather-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ LỊCH ÂM ═══ -->
+      <div class="pnl" data-key="lunar" data-label="📅 Lịch Âm">
+        <div class="pnl-h">
+          <span class="pnl-t">📅 Lịch Âm</span>
+          <div><span class="badge b-man">1 giờ</span></div>
+        </div>
+        <div class="pnl-body" id="lunar-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ PRODUCT HUNT ═══ -->
+      <div class="pnl" data-key="producthunt" data-label="🚀 Product Hunt">
+        <div class="pnl-h">
+          <span class="pnl-t">🚀 Product Hunt</span>
+          <div>
+            <span class="badge b-hour">2 giờ</span>
+            <button class="btn-sm" onclick="refreshPanel('producthunt', '/api/producthunt/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="ph-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ DEV BLOG ═══ -->
+      <div class="pnl" data-key="devblog" data-label="📝 Dev Blog">
+        <div class="pnl-h">
+          <span class="pnl-t">📝 Dev Blog</span>
+          <div>
+            <span class="badge b-hour">30 phút</span>
+            <button class="btn-sm" onclick="refreshPanel('devblog', '/api/devblog/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="devblog-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- ═══ SỰ KIỆN ═══ -->
+      <div class="pnl" data-key="events" data-label="📆 Sự Kiện Tech">
+        <div class="pnl-h">
+          <span class="pnl-t">📆 Sự Kiện Tech</span>
+          <div>
+            <span class="badge b-man">6 giờ</span>
+            <button class="btn-sm" onclick="refreshPanel('events', '/api/events/refresh', this)">↻</button>
+          </div>
+        </div>
+        <div class="pnl-body" id="events-body"><div class="loading">⏳ Đang tải...</div></div>
+      </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+  </body>
+</html>
