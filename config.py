@@ -76,16 +76,31 @@ GOLD_NAME_MAP = {
 }
 GOLD_PRIORITY = ["SJL1L10", "SJ9999", "DOHNL", "PQHNVM", "BT9999NTT", "XAUUSD"]
 
-BINANCE_URL = "https://api.binance.com/api/v3/ticker/24hr"
-CRYPTO_SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT"]
+OKX_TICKER_URL = "https://www.okx.com/api/v5/market/ticker"
+CRYPTO_SYMBOLS = [
+    "BTC-USDT",
+    "ETH-USDT",
+    "SOL-USDT",
+    "BNB-USDT",
+    "XAUT-USDT",
+    "HYPE-USDT",
+    "OKB-USDT",
+]
 CRYPTO_SYM = {
-    "BTCUSDT": "BTC",
-    "ETHUSDT": "ETH",
-    "SOLUSDT": "SOL",
-    "BNBUSDT": "BNB",
-    "XRPUSDT": "XRP",
-    "DOGEUSDT": "DOGE",
+    "BTC-USDT": "BTC",
+    "ETH-USDT": "ETH",
+    "SOL-USDT": "SOL",
+    "BNB-USDT": "BNB",
+    "XAUT-USDT": "XAUT",
+    "HYPE-USDT": "HYPE",
+    "OKB-USDT": "OKB",
 }
+
+OIL_URL = "https://giaxanghomnay.com/"
+
+GITHUB_TRENDING_URL = "https://github.com/trending"
+# "" là bảng tổng hợp mọi ngôn ngữ, giá trị là số repo lấy từ mỗi bảng
+GITHUB_TRENDING_LANGS = {"": 10, "go": 5, "rust": 5}
 
 HN_TOP = "https://hacker-news.firebaseio.com/v0/topstories.json"
 HN_ITEM = "https://hacker-news.firebaseio.com/v0/item/{}.json"
@@ -97,7 +112,13 @@ RSS_DEV_BLOGS = {
     "GitHub Blog": "https://github.blog/feed/",
     "Go Blog": "https://go.dev/blog/feed.atom",
     "Tailwind CSS": "https://tailwindcss.com/feeds/feed.xml",
+    "Slack": "https://slack.engineering/feed/",
+    "Spotify": "https://engineering.atspotify.com/feed/",
+    "AWS Architecture": "https://aws.amazon.com/blogs/architecture/feed/",
 }
+UBER_BLOG_URL = "https://www.uber.com/us/en/blog/engineering/"
+DEVBLOG_PER_SOURCE = 2
+DEVBLOG_LIMIT = 20
 
 TECH_EVENTS = [
     {"ten": "WWDC 2026", "ngay": "2026-06-08", "loai": "Apple"},

@@ -1,6 +1,6 @@
 import asyncio
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
@@ -36,7 +36,9 @@ scheduler = AsyncIOScheduler()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    state.http_client = httpx.AsyncClient(headers=HEADERS, timeout=REQUEST_TIMEOUT)
+    state.http_client = httpx.AsyncClient(
+        headers=HEADERS, timeout=REQUEST_TIMEOUT, follow_redirects=True
+    )
     await init_db()
     print("✅ PostgreSQL connected")
     bg_task = asyncio.gather(
@@ -125,6 +127,14 @@ def _fmt_pct(n):
     return f"{abs(n):.2f}" if n else "0.00"
 
 
+def _static_url(path):
+    """Gắn thời điểm sửa file vào URL tĩnh để trình duyệt không dùng lại bản cache cũ."""
+    file = BASE_DIR / "static" / path
+    version = int(file.stat().st_mtime) if file.exists() else 0
+    return f"/static/{path}?v={version}"
+
+
+templates.env.globals["static_url"] = _static_url
 templates.env.globals["fmt_big"] = _fmt_big
 templates.env.globals["fmt_vnd"] = _fmt_vnd
 templates.env.globals["fmt_usd"] = _fmt_usd
@@ -135,15 +145,15 @@ templates.env.globals["fmt_pct"] = _fmt_pct
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse(
+        request,
         "index.html",
         {
-            "request": request,
             "gold": state.cache["gold"],
             "crypto": state.cache["crypto"],
             "vn_news": state.cache["vn_news"],
             "world_news": state.cache["world_news"],
             "tech_news": state.cache["tech_news"],
             "github": state.cache["github"],
-            "now": datetime.now().strftime("%H:%M — %d/%m/%Y"),
+            "now": datetime.now(tz=timezone.utc).strftime("%H:%M — %d/%m/%Y"),
         },
     )

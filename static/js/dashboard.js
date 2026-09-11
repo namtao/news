@@ -1,3 +1,19 @@
+const THEME_KEY = "theme";
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem(THEME_KEY, theme);
+  const btn = document.getElementById("themeBtn");
+  if (btn) {
+    btn.textContent = theme === "light" ? "☀" : "🌙";
+    btn.title = theme === "light" ? "Chuyển sang nền tối" : "Chuyển sang nền sáng";
+  }
+}
+
+function toggleTheme() {
+  applyTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light");
+}
+
 // ─── CONFIG ───
 const PANELS_META = [
   { key: "gold", label: "💰 Giá Vàng" },
@@ -9,8 +25,6 @@ const PANELS_META = [
   { key: "forex", label: "💱 Tỷ Giá VCB" },
   { key: "stock", label: "📈 Chứng Khoán VN30" },
   { key: "oil", label: "⛽ Giá Xăng Dầu VN" },
-  { key: "weather", label: "🌤 Thời Tiết" },
-  { key: "lunar", label: "📅 Lịch Âm" },
   { key: "producthunt", label: "🚀 Product Hunt" },
   { key: "devblog", label: "📝 Dev Blog" },
   { key: "events", label: "📆 Sự Kiện Tech" },
@@ -32,20 +46,24 @@ function saveCfg(cfg) {
 function applyConfig() {
   const cfg = loadCfg();
   const hidden = cfg.hidden || [];
-  let visibleCount = 0;
+  const collapsed = cfg.collapsed || [];
   document.querySelectorAll(".pnl[data-key]").forEach((el) => {
-    const key = el.dataset.key;
-    const isHidden = hidden.includes(key);
-    el.classList.toggle("pnl-hidden", isHidden);
-    if (!isHidden) visibleCount++;
+    el.classList.toggle("pnl-hidden", hidden.includes(el.dataset.key));
+    el.classList.toggle("pnl-collapsed", collapsed.includes(el.dataset.key));
+  });
+  // Cột chủ đề nào bị ẩn hết panel thì bỏ luôn khỏi lưới.
+  let visibleCols = 0;
+  document.querySelectorAll(".col").forEach((col) => {
+    const empty = !col.querySelector(".pnl:not(.pnl-hidden)");
+    col.classList.toggle("col-hidden", empty);
+    if (!empty) visibleCols++;
   });
   const grid = document.getElementById("mainGrid");
-  if (cfg.cols && cfg.cols !== "auto") {
-    grid.style.gridTemplateColumns = `repeat(${cfg.cols}, 1fr)`;
-  } else {
-    const cols = visibleCount <= 2 ? 1 : visibleCount <= 6 ? 2 : 3;
-    grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-  }
+  const cols =
+    cfg.cols && cfg.cols !== "auto"
+      ? Math.min(Number(cfg.cols), visibleCols || 1)
+      : visibleCols || 1;
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   document.querySelectorAll(".cfg-col-btn").forEach((btn) => {
     btn.classList.toggle("active", String(btn.dataset.cols) === String(cfg.cols || "auto"));
   });
@@ -73,6 +91,15 @@ function togglePanel(key, visible) {
   const hidden = new Set(cfg.hidden || []);
   visible ? hidden.delete(key) : hidden.add(key);
   cfg.hidden = [...hidden];
+  saveCfg(cfg);
+  applyConfig();
+}
+
+function togglePanelCollapse(key) {
+  const cfg = loadCfg();
+  const collapsed = new Set(cfg.collapsed || []);
+  collapsed.has(key) ? collapsed.delete(key) : collapsed.add(key);
+  cfg.collapsed = [...collapsed];
   saveCfg(cfg);
   applyConfig();
 }
@@ -251,51 +278,141 @@ function renderOil(data) {
       .join("");
 }
 
+const DEFAULT_CITY = "Hà Nội";
+let weatherData = [];
+
+function wIcon(c) {
+  c = parseInt(c);
+  if (c === 113) return "☀️";
+  if (c === 116) return "⛅";
+  if (c === 119 || c === 122) return "☁️";
+  if ([176, 263, 266, 293, 296, 299, 302, 305, 308, 353, 356, 359].includes(c)) return "🌧️";
+  if ([200, 386, 389, 392, 395].includes(c)) return "⛈️";
+  if ([227, 230, 320, 323, 326, 329, 332, 335, 338, 368, 371, 374, 377].includes(c)) return "❄️";
+  if ([143, 248, 260].includes(c)) return "🌫️";
+  return "🌤️";
+}
+
+function setCity(city) {
+  const cfg = loadCfg();
+  cfg.city = city;
+  saveCfg(cfg);
+  renderWeather(weatherData);
+}
+
 function renderWeather(data) {
   if (!data?.length) return;
-  const wIcon = (c) => {
-    c = parseInt(c);
-    if (c === 113) return "☀️";
-    if (c === 116) return "⛅";
-    if (c === 119 || c === 122) return "☁️";
-    if ([176, 263, 266, 293, 296, 299, 302, 305, 308, 353, 356, 359].includes(c)) return "🌧️";
-    if ([200, 386, 389, 392, 395].includes(c)) return "⛈️";
-    if ([227, 230, 320, 323, 326, 329, 332, 335, 338, 368, 371, 374, 377].includes(c)) return "❄️";
-    if ([143, 248, 260].includes(c)) return "🌫️";
-    return "🌤️";
-  };
-  document.getElementById("weather-body").innerHTML = data
+  weatherData = data;
+  const el = document.getElementById("hdrWeather");
+  if (!el) return;
+  const wanted = loadCfg().city || DEFAULT_CITY;
+  const cur = data.find((r) => r.thanh_pho === wanted) || data[0];
+  const options = data
     .map(
       (r) =>
-        `<div class="wx-row"><span style="font-size:22px">${wIcon(r.icon)}</span><div style="flex:1"><b>${esc(r.thanh_pho)}</b><br><span style="color:var(--t2)">${esc(r.mo_ta)}</span></div><div style="text-align:right"><b>${r.nhiet_do}°C</b><br><span style="color:var(--t3)">💧${r.do_am}% 💨${r.gio}km/h</span></div></div>`,
+        `<option value="${esc(r.thanh_pho)}"${r.thanh_pho === cur.thanh_pho ? " selected" : ""}>${esc(r.thanh_pho)}</option>`,
     )
     .join("");
+  el.innerHTML =
+    `<span class="wx-emoji" onclick="refreshWeather(this)" title="Bấm để cập nhật">${wIcon(cur.icon)}</span>` +
+    `<select class="hdr-city" onchange="setCity(this.value)">${options}</select>` +
+    `<b>${cur.nhiet_do}°C</b>`;
+  el.title = `${cur.thanh_pho}: ${cur.mo_ta}\nCảm giác như ${cur.cam_giac}°C · Độ ẩm ${cur.do_am}% · Gió ${cur.gio} km/h`;
 }
+
+async function refreshWeather(el) {
+  el.textContent = "⏳";
+  try {
+    const d = await (await fetch("/api/weather/refresh")).json();
+    if (d?.data?.length) renderWeather(d.data);
+  } catch (e) {
+    renderWeather(weatherData);
+  }
+}
+
+
+let lunarData = null;
 
 function renderLunar(data) {
   if (!data) return;
-  const el = document.getElementById("lunar-body");
+  lunarData = data;
+  const el = document.getElementById("hdrLunar");
+  if (!el) return;
   const tot = data.ngay_tot
     ? `<span class="lunar-good">✦ Ngày tốt</span>`
-    : `<span class="lunar-bad">✦ Ngày bình thường</span>`;
-  const rows = [
-    ["Dương lịch", `${data.thu}, ${data.ngay_duong}`],
-    ["Âm lịch", data.am_lich],
-    ["Can chi ngày", data.can_chi_ngay],
-    ["Can chi tháng", data.can_chi_thang],
-    ["Can chi năm", data.can_chi_nam],
-    ["Giờ hoàng đạo", data.gio_hoang_dao || "—"],
-  ]
+    : `<span class="lunar-bad">✦ Ngày xấu</span>`;
+  el.innerHTML = `📅 <b>${esc(data.am_lich)}</b> · ngày ${esc(data.can_chi_ngay)} ${tot}`;
+  el.title = "Bấm để xem lịch âm chi tiết";
+  el.onclick = openLunar;
+  if (document.getElementById("lunarOverlay").classList.contains("open")) buildLunarDetail();
+}
+
+function buildLunarDetail() {
+  const d = lunarData;
+  if (!d) return;
+  const sec = (title, rows) =>
+    `<div class="ld-sec"><div class="ld-sec-t">${title}</div>${rows
+      .filter(([, v]) => v || v === 0)
+      .map(([k, v]) => `<div class="ld-row"><span>${esc(k)}</span><span>${esc(String(v))}</span></div>`)
+      .join("")}</div>`;
+
+  const gio = (d.gio_chi_tiet || [])
     .map(
-      ([label, val]) =>
-        `<div class="lunar-row"><span class="lunar-label">${esc(label)}</span><span class="lunar-val">${esc(val)}</span></div>`,
+      (g) =>
+        `<div class="ld-gio ${g.tot ? "tot" : "xau"}"><span>${esc(g.can_chi)}</span>` +
+        `<span>${esc(g.khung)}</span><span>${esc(g.sao)}</span></div>`,
     )
     .join("");
-  const holidays = data.le_sap_toi?.length
-    ? `<div style="margin-top:6px;border-top:1px solid rgba(42,53,80,.4);padding-top:6px">${data.le_sap_toi.map((h) => `<div class="lunar-row"><span class="lunar-label">🎉 ${esc(h.ten)}</span><span style="color:var(--yl);font-weight:600">${h.con_lai === 0 ? "Hôm nay" : h.con_lai + " ngày"}</span></div>`).join("")}</div>`
+
+  const le = (d.le_sap_toi || []).length
+    ? sec(
+        "Lễ sắp tới",
+        d.le_sap_toi.map((h) => [
+          `${h.ten} (${h.ngay})`,
+          h.con_lai === 0 ? "Hôm nay" : `còn ${h.con_lai} ngày`,
+        ]),
+      )
     : "";
-  el.innerHTML = `<div class="lunar-box"><div style="margin-bottom:6px">${tot}</div>${rows}${holidays}</div>`;
+
+  document.getElementById("lunarDetail").innerHTML =
+    sec("Ngày", [
+      ["Dương lịch", `${d.thu}, ${d.ngay_duong}`],
+      ["Âm lịch", d.am_lich],
+      ["Tháng", `${d.am_lich_thang} — ${d.thang_du}`],
+      ["Tiết khí", d.tiet_khi],
+    ]) +
+    sec("Tứ trụ (can chi)", [
+      ["Giờ hiện tại", d.can_chi_gio],
+      ["Ngày", d.can_chi_ngay],
+      ["Tháng", d.can_chi_thang],
+      ["Năm", d.can_chi_nam],
+    ]) +
+    sec("Nạp âm ngũ hành", [
+      ["Ngày", d.nap_am_ngay],
+      ["Tháng", d.nap_am_thang],
+      ["Năm", d.nap_am_nam],
+    ]) +
+    sec("Sao và cát hung", [
+      ["Sao trực nhật", d.sao_truc_nhat],
+      ["Loại ngày", d.hoang_dao ? "Hoàng đạo (tốt)" : "Hắc đạo (xấu)"],
+      ["Xung tuổi", d.xung_ngay],
+    ]) +
+    `<div class="ld-sec"><div class="ld-sec-t">12 giờ trong ngày</div>${gio}</div>` +
+    le;
 }
+
+function openLunar() {
+  buildLunarDetail();
+  document.getElementById("lunarOverlay").classList.add("open");
+}
+
+function closeLunar(e) {
+  if (!e || e.target === document.getElementById("lunarOverlay")) {
+    document.getElementById("lunarOverlay").classList.remove("open");
+  }
+}
+
+
 
 function renderProductHunt(data) {
   if (!data?.length) return;
@@ -367,6 +484,14 @@ async function loadAll() {
     if (await poll()) clearInterval(iv);
   }, 3000);
 }
+// Bấm bất kỳ đâu trên thanh tiêu đề để thu gọn, trừ các nút bên trong nó.
+document.getElementById("mainGrid").addEventListener("click", (e) => {
+  const header = e.target.closest(".pnl-h");
+  if (!header || e.target.closest("button")) return;
+  togglePanelCollapse(header.closest(".pnl").dataset.key);
+});
+
+applyTheme(document.documentElement.dataset.theme || "dark");
 loadAll();
 
 // ─── CRYPTO POLL ───
