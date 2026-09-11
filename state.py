@@ -19,4 +19,5 @@ cache = {
     "producthunt": {"data": [], "updated_at": None},
     "devblog": {"data": [], "updated_at": None},
     "events": {"data": [], "updated_at": None},
+    "jobs": {"data": [], "updated_at": None},
 }

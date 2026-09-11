@@ -21,6 +21,7 @@ const PANELS_META = [
   { key: "vn_news", label: "📰 Tin Trong Nước" },
   { key: "world_news", label: "🌍 Tin Quốc Tế" },
   { key: "tech_news", label: "💻 Hacker News" },
+  { key: "jobs", label: "💼 Việc Làm" },
   { key: "github", label: "🔥 GitHub Trending" },
   { key: "forex", label: "💱 Tỷ Giá VCB" },
   { key: "stock", label: "📈 Chứng Khoán VN30" },
@@ -444,6 +445,39 @@ function renderEvents(data) {
     .join("");
 }
 
+function renderJobs(data) {
+  if (!data?.length) return;
+  document.getElementById("jobs-body").innerHTML = data
+    .map((j) => {
+      const luong = j.luong && j.luong !== "Thỏa thuận" ? `<span class="job-sal">${esc(j.luong)}</span>` : "";
+      const meta = [j.dia_diem, j.loai_hinh, j.nguon].filter(Boolean);
+      const x = `<button class="job-x" data-url="${esc(j.url)}" title="Ẩn job này và lưu vào DB để lần sau không gợi ý lại">✕</button>`;
+      return `<div class="n-item"><div class="n-title"><a href="${esc(j.url)}" target="_blank">${esc(j.tieu_de)}</a>${luong}${x}</div><div class="n-sum">${esc(j.cong_ty || "")}</div><div class="n-meta">${meta.map((m) => `<span>${esc(m)}</span>`).join("")}${j.diem_goi_y ? `<span class="job-score">${j.diem_goi_y}đ</span>` : ""}</div></div>`;
+    })
+    .join("");
+}
+
+// Ẩn job: lưu vào job_history qua MCP nên các lần tìm sau không gợi ý lại nữa.
+document.getElementById("jobs-body").addEventListener("click", async (e) => {
+  const btn = e.target.closest(".job-x");
+  if (!btn || btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = "⏳";
+  try {
+    const r = await fetch("/api/jobs/hide", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: btn.dataset.url }),
+    });
+    if (!r.ok) throw new Error(r.status);
+    btn.closest(".n-item").remove();
+  } catch (err) {
+    btn.textContent = "⚠";
+    btn.title = "Không ẩn được, thử lại sau";
+    btn.disabled = false;
+  }
+});
+
 const renderers = {
   gold: (d) => renderGold(d.data),
   crypto: (d) => renderCrypto(d.data),
@@ -451,6 +485,7 @@ const renderers = {
   world_news: (d) => renderWorldNews(d.data),
   tech_news: (d) => renderTechNews(d.data),
   github: (d) => renderGithub(d.data),
+  jobs: (d) => renderJobs(d.data),
   forex: (d) => renderForex(d.data),
   stock: (d) => renderStock(d.data),
   oil: (d) => renderOil(d.data),
@@ -462,7 +497,17 @@ const renderers = {
 };
 
 // ─── INITIAL LOAD ───
+// Panel Việc Làm phải chờ MCP crawl nên lần đầu có thể mất hơn một phút.
+const POLL_GIVE_UP_MS = 180000;
+
+function showEmptyPanels() {
+  document.querySelectorAll(".pnl-body .loading").forEach((el) => {
+    el.textContent = "Chưa có dữ liệu — bấm ↻ để thử lại";
+  });
+}
+
 async function loadAll() {
+  const batDau = Date.now();
   const poll = async () => {
     try {
       const r = await fetch("/api/data");
@@ -474,14 +519,20 @@ async function loadAll() {
           if (v.data) render(v);
         } else if (v?.data?.length) render(v);
       }
-      return Object.entries(d).every(([k, v]) => (k === "lunar" ? !!v?.data : v?.data?.length > 0));
+      // Chốt theo danh sách panel của trang: server thiếu key nào thì vẫn phải hỏi tiếp.
+      return Object.keys(renderers).every((k) =>
+        k === "lunar" ? !!d[k]?.data : d[k]?.data?.length > 0,
+      );
     } catch (e) {
       return false;
     }
   };
   if (await poll()) return;
   const iv = setInterval(async () => {
-    if (await poll()) clearInterval(iv);
+    if ((await poll()) || Date.now() - batDau > POLL_GIVE_UP_MS) {
+      clearInterval(iv);
+      showEmptyPanels();
+    }
   }, 3000);
 }
 // Bấm bất kỳ đâu trên thanh tiêu đề để thu gọn, trừ các nút bên trong nó.

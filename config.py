@@ -6,6 +6,9 @@ load_dotenv()
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 OWM_API_KEY = os.environ.get("OWM_API_KEY", "")
+MCP_URL = os.environ.get("MCP_URL", "https://mcpserver.namtao.dpdns.org/mcp")
+# search_my_jobs crawl toàn bộ nguồn nên có thể chạy tới hơn một phút.
+MCP_TIMEOUT = 180
 REQUEST_TIMEOUT = 15
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -128,6 +131,9 @@ TECH_EVENTS = [
     {"ten": "GitHub Universe 2026", "ngay": "2026-10-27", "loai": "GitHub"},
     {"ten": "KubeCon NA 2026", "ngay": "2026-11-10", "loai": "CNCF"},
 ]
+
+# Số job hiển thị trên panel, lấy từ tool search_my_jobs của MCP server.
+JOBS_LIMIT = 15
 
 VN30 = [
     "ACB",

@@ -20,6 +20,7 @@ from jobs import (
     job_fetch_forex,
     job_fetch_github,
     job_fetch_gold,
+    job_fetch_jobs,
     job_fetch_lunar,
     job_fetch_oil,
     job_fetch_producthunt,
@@ -54,6 +55,7 @@ async def lifespan(app: FastAPI):
         job_fetch_weather(),
         job_fetch_producthunt(),
         job_fetch_devblog(),
+        job_fetch_jobs(),
         return_exceptions=True,
     )
     job_fetch_lunar()
@@ -72,6 +74,7 @@ async def lifespan(app: FastAPI):
     scheduler.add_job(job_fetch_producthunt, "interval", hours=2, id="producthunt")
     scheduler.add_job(job_fetch_devblog, "interval", minutes=30, id="devblog")
     scheduler.add_job(job_fetch_events, "interval", hours=6, id="events")
+    scheduler.add_job(job_fetch_jobs, "interval", hours=2, id="jobs")
     scheduler.start()
     print("✅ Scheduler started")
     yield
@@ -154,6 +157,7 @@ async def index(request: Request):
             "world_news": state.cache["world_news"],
             "tech_news": state.cache["tech_news"],
             "github": state.cache["github"],
+            "jobs": state.cache["jobs"],
             "now": datetime.now(tz=timezone.utc).strftime("%H:%M — %d/%m/%Y"),
         },
     )

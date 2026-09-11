@@ -359,6 +359,34 @@ a:hover {
   letter-spacing: -2px;
 }
 
+/* Việc làm */
+.job-sal {
+  background: var(--s3);
+  color: var(--gn);
+  border-radius: 3px;
+  padding: 0 4px;
+  font-size: 9px;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+.job-x {
+  float: right;
+  background: none;
+  border: none;
+  color: var(--t3);
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  padding: 0 0 0 6px;
+}
+.job-x:hover {
+  color: var(--rd);
+}
+.job-score {
+  margin-left: auto;
+  font-weight: 600;
+}
+
 /* GitHub compact */
 .gh-lang {
   background: var(--s3);

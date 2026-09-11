@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Body, HTTPException
 
 import state
 from jobs import (
@@ -10,6 +10,8 @@ from jobs import (
     job_fetch_forex,
     job_fetch_github,
     job_fetch_gold,
+    job_fetch_jobs,
+    job_hide,
     job_fetch_lunar,
     job_fetch_oil,
     job_fetch_producthunt,
@@ -102,6 +104,22 @@ async def api_producthunt_refresh():
 @router.get("/api/devblog/refresh")
 async def api_devblog_refresh():
     return await _rate_limited_refresh("devblog", job_fetch_devblog, 30)
+
+
+@router.get("/api/jobs/refresh")
+async def api_jobs_refresh():
+    return await _rate_limited_refresh("jobs", job_fetch_jobs, 900)
+
+
+@router.post("/api/jobs/hide")
+async def api_jobs_hide(payload: dict = Body(...)):
+    result = await job_hide(payload.get("url", ""))
+    if not result["ok"]:
+        raise HTTPException(
+            status_code=404 if result["ly_do"] == "khong_tim_thay" else 502,
+            detail=result["ly_do"],
+        )
+    return result
 
 
 @router.get("/api/events/refresh")

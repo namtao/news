@@ -157,6 +157,16 @@
         </div>
       </div>
       <div class="col" data-col="con-lai" aria-label="Còn lại">
+        <div class="pnl" data-key="jobs" data-label="💼 Việc Làm">
+          <div class="pnl-h">
+            <span class="pnl-t">💼 Việc Làm</span>
+            <div>
+              <span class="badge b-hour">2 giờ</span>
+              <button class="btn-sm" onclick="refreshPanel('jobs', '/api/jobs/refresh', this)">↻</button>
+            </div>
+          </div>
+          <div class="pnl-body" id="jobs-body"><div class="loading">⏳ Đang tải...</div></div>
+        </div>
         <div class="pnl" data-key="github" data-label="🔥 GitHub Trending">
           <div class="pnl-h">
             <span class="pnl-t">🔥 GitHub</span>

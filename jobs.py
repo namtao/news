@@ -15,13 +15,14 @@ from config import (
     CRYPTO_SYMBOLS,
     DEVBLOG_LIMIT,
     DEVBLOG_PER_SOURCE,
-    GOLD_API_URL,
-    GOLD_NAME_MAP,
     GITHUB_TRENDING_LANGS,
     GITHUB_TRENDING_URL,
+    GOLD_API_URL,
+    GOLD_NAME_MAP,
     GOLD_PRIORITY,
     HN_ITEM,
     HN_TOP,
+    JOBS_LIMIT,
     OIL_URL,
     OKX_TICKER_URL,
     RSS_DEV_BLOGS,
@@ -33,6 +34,7 @@ from config import (
     VN30,
 )
 from db import log_crypto_prices, log_gold_prices, log_news_batch
+from mcp_client import call_tool
 from utils import deduplicate_batch, fetch_multiple_rss, rank_news, safe_get, strip_html
 
 
@@ -51,15 +53,17 @@ async def job_fetch_gold():
             if code not in prices:
                 continue
             v = prices[code]
-            formatted.append({
-                "code": code,
-                "name": GOLD_NAME_MAP.get(code, v.get("name", code)),
-                "buy": v.get("buy", 0),
-                "sell": v.get("sell", 0),
-                "change_sell": v.get("change_sell", 0),
-                "change_buy": v.get("change_buy", 0),
-                "currency": v.get("currency", "VND"),
-            })
+            formatted.append(
+                {
+                    "code": code,
+                    "name": GOLD_NAME_MAP.get(code, v.get("name", code)),
+                    "buy": v.get("buy", 0),
+                    "sell": v.get("sell", 0),
+                    "change_sell": v.get("change_sell", 0),
+                    "change_buy": v.get("change_buy", 0),
+                    "currency": v.get("currency", "VND"),
+                }
+            )
         state.cache["gold"] = {
             "data": formatted,
             "time": data.get("time", ""),
@@ -85,16 +89,18 @@ async def job_fetch_crypto():
                 continue
             last = float(ticker["last"])
             open24h = float(ticker.get("open24h") or 0)
-            items.append({
-                "ky_hieu": CRYPTO_SYM.get(sym, sym),
-                "usd": last,
-                "vnd": 0,
-                "thay_doi": round((last - open24h) / open24h * 100, 2)
-                if open24h
-                else 0,
-                "von_hoa": 0,
-                "kl": float(ticker.get("volCcy24h") or 0),
-            })
+            items.append(
+                {
+                    "ky_hieu": CRYPTO_SYM.get(sym, sym),
+                    "usd": last,
+                    "vnd": 0,
+                    "thay_doi": round((last - open24h) / open24h * 100, 2)
+                    if open24h
+                    else 0,
+                    "von_hoa": 0,
+                    "kl": float(ticker.get("volCcy24h") or 0),
+                }
+            )
         except Exception as e:
             print(f"  ⚠ crypto {sym}: {e}")
     if not items:
@@ -150,14 +156,16 @@ async def job_fetch_tech_news():
             if not r:
                 continue
             item = r.json()
-            ds.append({
-                "tieu_de": item.get("title", ""),
-                "url": item.get("url", ""),
-                "hn_url": f"https://news.ycombinator.com/item?id={sid}",
-                "diem": item.get("score", 0),
-                "binh_luan": item.get("descendants", 0),
-                "tac_gia": item.get("by", ""),
-            })
+            ds.append(
+                {
+                    "tieu_de": item.get("title", ""),
+                    "url": item.get("url", ""),
+                    "hn_url": f"https://news.ycombinator.com/item?id={sid}",
+                    "diem": item.get("score", 0),
+                    "binh_luan": item.get("descendants", 0),
+                    "tac_gia": item.get("by", ""),
+                }
+            )
         ds = rank_news(ds, 10)
         state.cache["tech_news"] = {
             "data": ds,
@@ -184,15 +192,17 @@ def _parse_trending(html, limit):
         stars = links[0].get_text(strip=True).replace(",", "") if links else ""
         today_el = art.select_one("span.d-inline-block.float-sm-right")
         today = today_el.get_text(strip=True) if today_el else ""
-        repos.append({
-            "ten": name,
-            "tieu_de": name,
-            "mo_ta": desc[:150],
-            "ngon_ngu": lang,
-            "sao": stars,
-            "hom_nay": today,
-            "url": f"https://github.com/{name}",
-        })
+        repos.append(
+            {
+                "ten": name,
+                "tieu_de": name,
+                "mo_ta": desc[:150],
+                "ngon_ngu": lang,
+                "sao": stars,
+                "hom_nay": today,
+                "url": f"https://github.com/{name}",
+            }
+        )
     return repos
 
 
@@ -288,13 +298,15 @@ async def job_fetch_stock():
             phan_tram = (
                 round((thay_doi / (gia - thay_doi)) * 100, 2) if (gia - thay_doi) else 0
             )
-            items.append({
-                "ma": ma,
-                "gia": gia,
-                "thay_doi": thay_doi,
-                "phan_tram": phan_tram,
-                "kl": row.get("n", 0),
-            })
+            items.append(
+                {
+                    "ma": ma,
+                    "gia": gia,
+                    "thay_doi": thay_doi,
+                    "phan_tram": phan_tram,
+                    "kl": row.get("n", 0),
+                }
+            )
         items.sort(key=lambda x: x["ma"])
         state.cache["stock"] = {
             "data": items,
@@ -336,12 +348,14 @@ async def job_fetch_oil():
                 continue
             chg = _parse_vnd(cols[2])
             pct = round((chg / (gia - chg)) * 100, 2) if (gia - chg) else 0
-            items.append({
-                "ten": cols[0],
-                "gia": gia,
-                "thay_doi": chg,
-                "phan_tram": pct,
-            })
+            items.append(
+                {
+                    "ten": cols[0],
+                    "gia": gia,
+                    "thay_doi": chg,
+                    "phan_tram": pct,
+                }
+            )
         if items:
             state.cache["oil"] = {
                 "data": items,
@@ -369,17 +383,19 @@ async def job_fetch_weather():
         try:
             d = resp.json()
             cur = d["current_condition"][0]
-            items.append({
-                "thanh_pho": city_names.get(city, city),
-                "nhiet_do": int(cur["temp_C"]),
-                "cam_giac": int(cur["FeelsLikeC"]),
-                "do_am": int(cur["humidity"]),
-                "mo_ta": cur["lang_vi"][0]["value"]
-                if cur.get("lang_vi")
-                else cur["weatherDesc"][0]["value"],
-                "icon": cur["weatherCode"],
-                "gio": round(int(cur["windspeedKmph"]), 1),
-            })
+            items.append(
+                {
+                    "thanh_pho": city_names.get(city, city),
+                    "nhiet_do": int(cur["temp_C"]),
+                    "cam_giac": int(cur["FeelsLikeC"]),
+                    "do_am": int(cur["humidity"]),
+                    "mo_ta": cur["lang_vi"][0]["value"]
+                    if cur.get("lang_vi")
+                    else cur["weatherDesc"][0]["value"],
+                    "icon": cur["weatherCode"],
+                    "gio": round(int(cur["windspeedKmph"]), 1),
+                }
+            )
         except Exception:
             pass
     if items:
@@ -505,7 +521,9 @@ def _jd_to_date(jdn):
     d = (4 * c + 3) // 1461
     e = c - (1461 * d) // 4
     m = (5 * e + 2) // 153
-    return date(b * 100 + d - 4800 + m // 10, m + 3 - 12 * (m // 10), e - (153 * m + 2) // 5 + 1)
+    return date(
+        b * 100 + d - 4800 + m // 10, m + 3 - 12 * (m // 10), e - (153 * m + 2) // 5 + 1
+    )
 
 
 def _new_moon(k):
@@ -538,7 +556,9 @@ def _sun_longitude(jdn):
     M = 357.5291 + 35999.0503 * T - 0.0001559 * T2 - 0.00000048 * T * T2
     L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T2
     C = (1.9146 - 0.004817 * T - 0.000014 * T2) * math.sin(dr * M)
-    C += (0.019993 - 0.000101 * T) * math.sin(dr * 2 * M) + 0.00029 * math.sin(dr * 3 * M)
+    C += (0.019993 - 0.000101 * T) * math.sin(dr * 2 * M) + 0.00029 * math.sin(
+        dr * 3 * M
+    )
     omega = 125.04 - 1934.136 * T
     lon = (L0 + C - 0.00569 - 0.00478 * math.sin(omega * dr)) * dr
     return lon - math.pi * 2 * int(lon / (math.pi * 2))
@@ -641,11 +661,13 @@ def _le_sap_toi(today, days_ahead=120):
         for ngay, ten in days:
             con_lai = (ngay - today).days
             if 0 <= con_lai <= days_ahead:
-                upcoming.append({
-                    "ten": ten,
-                    "ngay": ngay.strftime("%d/%m"),
-                    "con_lai": con_lai,
-                })
+                upcoming.append(
+                    {
+                        "ten": ten,
+                        "ngay": ngay.strftime("%d/%m"),
+                        "con_lai": con_lai,
+                    }
+                )
     upcoming.sort(key=lambda le: le["con_lai"])
     return upcoming[:5]
 
@@ -682,13 +704,15 @@ def _chi_tiet_gio(can_ngay_idx, chi_ngay_idx):
         bat_dau = (chi_idx * 2 + 23) % 24
         ket_thuc = (bat_dau + 1) % 24
         sao, tot = _sao_theo_chi(chi_ngay_idx, chi_idx)
-        gio.append({
-            "chi": CHI[chi_idx],
-            "khung": f"{bat_dau:02d}:00–{ket_thuc:02d}:59",
-            "can_chi": _can_chi(can_ngay_idx * 2 + chi_idx, chi_idx),
-            "sao": sao,
-            "tot": tot,
-        })
+        gio.append(
+            {
+                "chi": CHI[chi_idx],
+                "khung": f"{bat_dau:02d}:00–{ket_thuc:02d}:59",
+                "can_chi": _can_chi(can_ngay_idx * 2 + chi_idx, chi_idx),
+                "sao": sao,
+                "tot": tot,
+            }
+        )
     return gio
 
 
@@ -727,7 +751,9 @@ def job_fetch_lunar():
             "am_lich": f"Ngày {ld} tháng {lm}{' nhuận' if leap else ''} năm {ly}",
             "am_lich_ngay": ld,
             "am_lich_thang": f"{lm}{' (nhuận)' if leap else ''}",
-            "thang_du": "Đủ (30 ngày)" if thang_sau - dau_thang == 30 else "Thiếu (29 ngày)",
+            "thang_du": "Đủ (30 ngày)"
+            if thang_sau - dau_thang == 30
+            else "Thiếu (29 ngày)",
             "can_chi_gio": _can_chi(can_ngay_idx * 2 + chi_gio_idx, chi_gio_idx),
             "can_chi_ngay": _can_chi(can_ngay_idx, chi_ngay_idx),
             "can_chi_thang": _can_chi(can_thang_idx, chi_thang_idx),
@@ -761,11 +787,13 @@ async def job_fetch_producthunt():
         for entry in feed.entries[:12]:
             title = unescape(strip_html(entry.get("title", ""))).strip()
             desc = strip_html(entry.get("summary", entry.get("description", "")))
-            items.append({
-                "ten": title,
-                "mo_ta": desc[:120],
-                "url": entry.get("link", ""),
-            })
+            items.append(
+                {
+                    "ten": title,
+                    "mo_ta": desc[:120],
+                    "url": entry.get("link", ""),
+                }
+            )
         if items:
             state.cache["producthunt"] = {
                 "data": items,
@@ -792,12 +820,14 @@ async def fetch_uber_blog(max_items):
                 url = page.get("fullURL", "")
                 if url and not url.startswith("http"):
                     url = f"https://{url}"
-                items.append({
-                    "nguon": "Uber Engineering",
-                    "tieu_de": unescape(page.get("title", "")).strip(),
-                    "mo_ta": "",
-                    "url": url,
-                })
+                items.append(
+                    {
+                        "nguon": "Uber Engineering",
+                        "tieu_de": unescape(page.get("title", "")).strip(),
+                        "mo_ta": "",
+                        "url": url,
+                    }
+                )
             break
     except Exception as e:
         print(f"  ⚠ Uber Engineering: {e}")
@@ -835,14 +865,58 @@ def job_fetch_events():
         evt_date = date.fromisoformat(evt["ngay"])
         delta = (evt_date - today).days
         if -1 <= delta <= 180:
-            upcoming.append({
-                "ten": evt["ten"],
-                "ngay": evt_date.strftime("%d/%m/%Y"),
-                "con_lai": delta,
-                "loai": evt["loai"],
-            })
+            upcoming.append(
+                {
+                    "ten": evt["ten"],
+                    "ngay": evt_date.strftime("%d/%m/%Y"),
+                    "con_lai": delta,
+                    "loai": evt["loai"],
+                }
+            )
     upcoming.sort(key=lambda x: x["con_lai"])
     state.cache["events"] = {
         "data": upcoming,
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
+
+
+async def job_fetch_jobs():
+    """Lấy việc làm khớp hồ sơ từ MCP server, xếp theo điểm gợi ý sẵn có."""
+    print(f"[{datetime.now():%H:%M:%S}] jobs...")
+    result = await call_tool("search_my_jobs", {"gioi_han": 300})
+    items = result.get("data") if isinstance(result, dict) else None
+    if not items:
+        return
+    items.sort(key=lambda j: j.get("diem_goi_y", 0), reverse=True)
+    top = items[:JOBS_LIMIT]
+    state.cache["jobs"] = {
+        "data": top,
+        "tong_tim_thay": result.get("tong_tim_thay", len(items)),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await log_news_batch(
+        [
+            {
+                "tieu_de": j.get("tieu_de", ""),
+                "url": j.get("url", ""),
+                "nguon": j.get("nguon", ""),
+                "tom_tat": f"{j.get('cong_ty', '')} · {j.get('dia_diem', '')} · {j.get('luong', '')}",
+                "_score": j.get("diem_goi_y", 0),
+            }
+            for j in top
+        ],
+        "jobs",
+    )
+
+
+async def job_hide(url: str) -> dict:
+    """Ẩn một job khỏi card và lưu vào job_history để lần sau không gợi ý lại."""
+    cached = state.cache["jobs"]["data"]
+    job = next((j for j in cached if j.get("url") == url), None)
+    if not job:
+        return {"ok": False, "ly_do": "khong_tim_thay"}
+    result = await call_tool("luu_jobs_da_chon", {"jobs": [job]})
+    if not isinstance(result, dict):
+        return {"ok": False, "ly_do": "mcp_loi"}
+    state.cache["jobs"]["data"] = [j for j in cached if j.get("url") != url]
+    return {"ok": True, "da_luu": result.get("da_luu", 0), "bo_qua": result.get("bo_qua", 0)}
