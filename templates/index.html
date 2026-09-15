@@ -125,6 +125,16 @@
           </div>
           <div class="pnl-body" id="crypto-body"><div class="loading">⏳ Đang tải...</div></div>
         </div>
+        <div class="pnl" data-key="futures" data-label="📉 Futures (Perpetual)">
+          <div class="pnl-h">
+            <span class="pnl-t">📉 Futures (Perpetual)</span>
+            <div>
+              <span class="badge b-live">LIVE 5s</span>
+              <button class="btn-sm" onclick="refreshPanel('futures', '/api/futures/refresh', this)">↻</button>
+            </div>
+          </div>
+          <div class="pnl-body" id="futures-body"><div class="loading">⏳ Đang tải...</div></div>
+        </div>
         <div class="pnl" data-key="forex" data-label="💱 Tỷ Giá VCB">
           <div class="pnl-h">
             <span class="pnl-t">💱 Tỷ Giá VCB</span>

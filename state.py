@@ -7,6 +7,7 @@ http_client: httpx.AsyncClient | None = None
 cache = {
     "gold": {"data": [], "time": "", "date": "", "updated_at": None},
     "crypto": {"data": [], "updated_at": None},
+    "futures": {"data": [], "updated_at": None},
     "vn_news": {"data": [], "updated_at": None},
     "world_news": {"data": [], "updated_at": None},
     "tech_news": {"data": [], "updated_at": None},

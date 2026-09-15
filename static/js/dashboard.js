@@ -18,6 +18,7 @@ function toggleTheme() {
 const PANELS_META = [
   { key: "gold", label: "💰 Giá Vàng" },
   { key: "crypto", label: "🪙 Crypto" },
+  { key: "futures", label: "📉 Futures" },
   { key: "vn_news", label: "📰 Tin Trong Nước" },
   { key: "world_news", label: "🌍 Tin Quốc Tế" },
   { key: "tech_news", label: "💻 Hacker News" },
@@ -191,6 +192,16 @@ function renderGold(data) {
 function renderCrypto(data) {
   if (!data?.length) return;
   document.getElementById("crypto-body").innerHTML = data
+    .map(
+      (c) =>
+        `<div class="c-row"><span class="c-sym">${esc(c.ky_hieu)}</span><span class="c-price">${fU(c.usd)}</span><span class="c-chg ${cc(c.thay_doi)}">${ca(c.thay_doi)}${fP(c.thay_doi)}%</span><span class="c-cap">${fB(c.von_hoa)}</span></div>`,
+    )
+    .join("");
+}
+
+function renderFutures(data) {
+  if (!data?.length) return;
+  document.getElementById("futures-body").innerHTML = data
     .map(
       (c) =>
         `<div class="c-row"><span class="c-sym">${esc(c.ky_hieu)}</span><span class="c-price">${fU(c.usd)}</span><span class="c-chg ${cc(c.thay_doi)}">${ca(c.thay_doi)}${fP(c.thay_doi)}%</span><span class="c-cap">${fB(c.von_hoa)}</span></div>`,
@@ -481,6 +492,7 @@ document.getElementById("jobs-body").addEventListener("click", async (e) => {
 const renderers = {
   gold: (d) => renderGold(d.data),
   crypto: (d) => renderCrypto(d.data),
+  futures: (d) => renderFutures(d.data),
   vn_news: (d) => renderVnNews(d.data),
   world_news: (d) => renderWorldNews(d.data),
   tech_news: (d) => renderTechNews(d.data),
@@ -552,6 +564,7 @@ setInterval(async () => {
     const d = await r.json();
     if (d.crypto?.data?.length) renderCrypto(d.crypto.data);
     if (d.gold?.data?.length) renderGold(d.gold.data);
+    if (d.futures?.data?.length) renderFutures(d.futures.data);
   } catch (e) {}
 }, 5000);
 

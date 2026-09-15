@@ -85,14 +85,14 @@ async def log_gold_prices(data: dict):
             )
 
 
-async def log_crypto_prices(items: list[dict]):
+async def log_crypto_prices(items: list[dict], module: str = "crypto"):
     if not state.db_pool or not items:
         return
     async with state.db_pool.acquire() as conn:
         for c in items:
             await conn.execute(
                 "INSERT INTO prices (module,symbol,buy,sell,change_pct,raw_json) VALUES ($1,$2,$3,$4,$5,$6)",
-                "crypto",
+                module,
                 c["ky_hieu"],
                 float(c["usd"]),
                 0.0,

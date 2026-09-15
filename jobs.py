@@ -15,6 +15,8 @@ from config import (
     CRYPTO_SYMBOLS,
     DEVBLOG_LIMIT,
     DEVBLOG_PER_SOURCE,
+    FUTURES_SYM,
+    FUTURES_SYMBOLS,
     GITHUB_TRENDING_LANGS,
     GITHUB_TRENDING_URL,
     GOLD_API_URL,
@@ -75,12 +77,12 @@ async def job_fetch_gold():
         print(f"  ⚠ gold: {e}")
 
 
-async def job_fetch_crypto():
+async def _fetch_okx_tickers(symbols, sym_map, label):
     responses = await asyncio.gather(
-        *(safe_get(f"{OKX_TICKER_URL}?instId={sym}") for sym in CRYPTO_SYMBOLS)
+        *(safe_get(f"{OKX_TICKER_URL}?instId={sym}") for sym in symbols)
     )
     items = []
-    for sym, resp in zip(CRYPTO_SYMBOLS, responses):
+    for sym, resp in zip(symbols, responses):
         if not resp:
             continue
         try:
@@ -91,7 +93,7 @@ async def job_fetch_crypto():
             open24h = float(ticker.get("open24h") or 0)
             items.append(
                 {
-                    "ky_hieu": CRYPTO_SYM.get(sym, sym),
+                    "ky_hieu": sym_map.get(sym, sym),
                     "usd": last,
                     "vnd": 0,
                     "thay_doi": round((last - open24h) / open24h * 100, 2)
@@ -102,14 +104,30 @@ async def job_fetch_crypto():
                 }
             )
         except Exception as e:
-            print(f"  ⚠ crypto {sym}: {e}")
+            print(f"  ⚠ {label} {sym}: {e}")
+    return items
+
+
+async def job_fetch_crypto():
+    items = await _fetch_okx_tickers(CRYPTO_SYMBOLS, CRYPTO_SYM, "crypto")
     if not items:
         return
     state.cache["crypto"] = {
         "data": items,
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
-    await log_crypto_prices(items)
+    await log_crypto_prices(items, "crypto")
+
+
+async def job_fetch_futures():
+    items = await _fetch_okx_tickers(FUTURES_SYMBOLS, FUTURES_SYM, "futures")
+    if not items:
+        return
+    state.cache["futures"] = {
+        "data": items,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await log_crypto_prices(items, "futures")
 
 
 async def job_fetch_vn_news():

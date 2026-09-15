@@ -8,10 +8,10 @@ from jobs import (
     job_fetch_devblog,
     job_fetch_events,
     job_fetch_forex,
+    job_fetch_futures,
     job_fetch_github,
     job_fetch_gold,
     job_fetch_jobs,
-    job_hide,
     job_fetch_lunar,
     job_fetch_oil,
     job_fetch_producthunt,
@@ -20,6 +20,7 @@ from jobs import (
     job_fetch_vn_news,
     job_fetch_weather,
     job_fetch_world_news,
+    job_hide,
 )
 
 router = APIRouter()
@@ -43,7 +44,11 @@ async def api_data():
 
 @router.get("/api/prices")
 async def api_prices():
-    return {"gold": state.cache["gold"], "crypto": state.cache["crypto"]}
+    return {
+        "gold": state.cache["gold"],
+        "crypto": state.cache["crypto"],
+        "futures": state.cache["futures"],
+    }
 
 
 @router.get("/api/gold/refresh")
@@ -54,6 +59,11 @@ async def api_gold_refresh():
 @router.get("/api/crypto/refresh")
 async def api_crypto_refresh():
     return await _rate_limited_refresh("crypto", job_fetch_crypto, 5)
+
+
+@router.get("/api/futures/refresh")
+async def api_futures_refresh():
+    return await _rate_limited_refresh("futures", job_fetch_futures, 5)
 
 
 @router.get("/api/vn_news/refresh")

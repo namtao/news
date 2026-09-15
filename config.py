@@ -98,6 +98,23 @@ CRYPTO_SYM = {
     "HYPE-USDT": "HYPE",
     "OKB-USDT": "OKB",
 }
+# XAUT không có hợp đồng SWAP trên OKX nên không đưa vào danh sách future.
+FUTURES_SYMBOLS = [
+    "BTC-USDT-SWAP",
+    "ETH-USDT-SWAP",
+    "SOL-USDT-SWAP",
+    "BNB-USDT-SWAP",
+    "HYPE-USDT-SWAP",
+    "OKB-USDT-SWAP",
+]
+FUTURES_SYM = {
+    "BTC-USDT-SWAP": "BTC",
+    "ETH-USDT-SWAP": "ETH",
+    "SOL-USDT-SWAP": "SOL",
+    "BNB-USDT-SWAP": "BNB",
+    "HYPE-USDT-SWAP": "HYPE",
+    "OKB-USDT-SWAP": "OKB",
+}
 
 OIL_URL = "https://giaxanghomnay.com/"
 

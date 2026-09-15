@@ -18,6 +18,7 @@ from jobs import (
     job_fetch_devblog,
     job_fetch_events,
     job_fetch_forex,
+    job_fetch_futures,
     job_fetch_github,
     job_fetch_gold,
     job_fetch_jobs,
@@ -45,6 +46,7 @@ async def lifespan(app: FastAPI):
     bg_task = asyncio.gather(
         job_fetch_gold(),
         job_fetch_crypto(),
+        job_fetch_futures(),
         job_fetch_vn_news(),
         job_fetch_world_news(),
         job_fetch_tech_news(),
@@ -63,6 +65,7 @@ async def lifespan(app: FastAPI):
     print("✅ Background fetch started")
     scheduler.add_job(job_fetch_gold, "interval", minutes=15, id="gold")
     scheduler.add_job(job_fetch_crypto, "interval", seconds=5, id="crypto")
+    scheduler.add_job(job_fetch_futures, "interval", seconds=5, id="futures")
     scheduler.add_job(job_fetch_vn_news, "interval", minutes=15, id="vn_news")
     scheduler.add_job(job_fetch_world_news, "interval", minutes=15, id="world_news")
     scheduler.add_job(job_fetch_tech_news, "interval", minutes=15, id="tech_news")
